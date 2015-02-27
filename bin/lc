@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awsm'
+require 'awsm/launch_config'
+
+Awsm::LaunchConfig.start(ARGV)
