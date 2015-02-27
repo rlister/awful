@@ -6,10 +6,10 @@ require 'awsm/version'
 Gem::Specification.new do |spec|
   spec.name          = "awsm"
   spec.version       = Awsm::VERSION
-  spec.authors       = ["TODO: Write your name"]
+  spec.authors       = ["Ric Lister"]
   spec.email         = ["rlister+gh@gmail.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{Simple AWS command-line tool.}
+  spec.description   = %q{AWS cmdline and yaml loader.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
