@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awsm'
+require 'awsm/auto_scaling'
+
+Awsm::AutoScaling.start(ARGV)
