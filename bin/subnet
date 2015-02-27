@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awsm'
+require 'awsm/subnet'
+
+Awsm::Subnet.start(ARGV)
