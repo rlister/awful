@@ -11,7 +11,7 @@ module Awsm
         ->(s) { [s.subnet_id] }
       ec2.describe_subnets.map(&:subnets).flatten.select do |subnet|
         subnet.tags.any? { |tag| tag.value.match(name) }
-      end.tap{ |s| p s }.map do |subnet|
+      end.map do |subnet|
         fields.call(subnet)
       end.tap do |list|
         print_table list.sort
