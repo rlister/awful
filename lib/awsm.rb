@@ -14,6 +14,10 @@ module Awsm
     @autoscaling ||= Aws::AutoScaling::Client.new
   end
 
+  def elb
+    @elb ||= Aws::ElasticLoadBalancing::Client.new
+  end
+
   def symbolize_keys(thing)
     if thing.is_a?(Hash)
       Hash[ thing.map { |k,v| [ k.to_sym, symbolize_keys(v) ] } ]
