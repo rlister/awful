@@ -55,6 +55,20 @@ module Awsm
       end
     end
 
+    desc 'allocate', 'allocate a new elastic IP address'
+    def allocate
+      ec2.allocate_address(domain: 'vpc').map do |eip|
+        puts eip.allocation_id, eip.public_ip
+      end
+    end
+
+    desc 'associate NAME IP', 'associate a public ip with an instance'
+    def associate(name, eip)
+      ec2.associate_address(instance_id: find_instance(name), allocation_id: eip).map(&:association_id).tap do |id|
+        puts id
+      end
+    end
+
     desc 'delete NAME', 'terminate a running instance'
     def delete(name)
       id =
