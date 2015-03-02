@@ -61,7 +61,9 @@ module Awsm
 
   ## return id for instance by name
   def find_instance(name)
-    if name.match(/^i-[\d[a-f]]{8}$/)
+    if name .nil?
+      nil?
+    elsif name.match(/^i-[\d[a-f]]{8}$/)
       name
     else
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
