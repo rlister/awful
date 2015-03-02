@@ -69,6 +69,15 @@ module Awsm
       end
     end
 
+    desc 'addresses', 'list elastic IP addresses'
+    def addresses
+      ec2.describe_addresses.map(&:addresses).flatten.map do |ip|
+        [ ip.allocation_id, ip.public_ip, ip.instance_id, ip.domain ]
+      end.tap do |list|
+        print_table list
+      end
+    end
+
     desc 'delete NAME', 'terminate a running instance'
     def delete(name)
       id =
