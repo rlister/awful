@@ -54,4 +54,8 @@ module Awsm
     end
   end
 
+  def tag_name(thing)
+    tn = thing.tags.find { |tag| tag.key == 'Name' }
+    tn && tn.value
+  end
 end
