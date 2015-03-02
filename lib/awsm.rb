@@ -58,4 +58,16 @@ module Awsm
     tn = thing.tags.find { |tag| tag.key == 'Name' }
     tn && tn.value
   end
+
+  ## return id for instance by name
+  def find_instance(name)
+    if name.match(/^i-[\d[a-f]]{8}$/)
+      name
+    else
+      ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
+        tag_name(instance) == name
+      end.instance_id
+    end
+  end
+
 end
