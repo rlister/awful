@@ -68,6 +68,11 @@ module Awsm
       ids = response.instances.map(&:instance_id)
       ec2.create_tags(resources: ids, tags: opt[:tags]) # tag instances
       puts ids # report new instance ids
+
+      ## wait for instance to be running
+      puts "waiting for running state"
+      ec2.wait_until(:instance_running, instance_ids: ids)
+      puts 'running'
     end
 
     desc 'allocate', 'allocate a new elastic IP address'
