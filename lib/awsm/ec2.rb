@@ -98,6 +98,15 @@ module Awsm
       end
     end
 
+    desc 'dns NAME', 'get public DNS for named instance'
+    def dns(name)
+      ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
+        instance.instance_id == name or (n = tag_name(instance) and n.match(name))
+      end.public_dns_name.tap do |dns|
+        puts dns
+      end
+    end
+
     desc 'delete NAME', 'terminate a running instance'
     def delete(name)
       id =
