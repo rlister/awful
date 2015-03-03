@@ -87,7 +87,6 @@ module Awsm
       opt[:tags] = opt.has_key?(:tags) ? opt[:tags].map { |tag| only_keys_matching(tag, %i[key value propagate_at_launch]) } : []
 
       autoscaling.create_auto_scaling_group(opt)
-      autoscaling.create_or_update_tags(resource_id: name, resource_type: 'auto-scaling-group', tags: opt[:tags])
     end
 
     desc 'update NAME', 'update existing auto-scaling group'
