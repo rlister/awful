@@ -124,7 +124,7 @@ module Awsm
           name
         else
           ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
-            tag_name(instance) == name
+            tag_name(instance) == name and not %w[terminated shutting-down].include?(instance.state.name)
           end.instance_id
         end
       if yes? "Really terminate instance #{name} (#{id})?", :yellow
