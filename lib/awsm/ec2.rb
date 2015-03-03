@@ -32,8 +32,9 @@ module Awsm
     end
 
     desc 'create NAME', 'run new EC2 instance'
-    method_option :subnet,    :aliases => '-s', :default => nil,  :desc => 'VPC subnet to use; default nil (classic)'
-    method_option :public_ip, :aliases => '-p', :default => true, :desc => 'Assign public IP to VPC instances'
+    method_option :subnet,     :aliases => '-s', :default => nil,  :desc => 'VPC subnet to use; default nil (classic)'
+    method_option :public_ip,  :aliases => '-p', :default => true, :desc => 'Assign public IP to VPC instances'
+    method_option :elastic_ip, :aliases => '-e', :default => true, :desc => 'Assign new elastic IP to instances'
     def create(name)
       opt = load_cfg.merge(symbolize_keys(options))
       whitelist = %i[image_id min_count max_count key_name security_group_ids user_data instance_type kernel_id
@@ -73,6 +74,10 @@ module Awsm
       puts "waiting for running state"
       ec2.wait_until(:instance_running, instance_ids: ids)
       puts 'running'
+
+      ## allocate and associate new elastic IPs
+      ids.map { |id| associate(id, allocate.allocation_id) } if opt[:elastic_ip]
+
     end
 
     desc 'allocate', 'allocate a new elastic IP address'
