@@ -77,6 +77,12 @@ module Awsm
       ## allocate and associate new elastic IPs
       ids.map { |id| associate(id, allocate.allocation_id) } if opt[:elastic_ip]
 
+      ## report DNS or IP for instance
+      ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
+        instance.public_dns_name or instance.public_ip_address or instance.private_ip_address
+      end.tap do |list|
+        puts list
+      end
     end
 
     desc 'allocate', 'allocate a new elastic IP address'
