@@ -63,12 +63,11 @@ module Awsm
       # scrub unwanted fields from a copied instance dump
       opt = remove_empty_strings(opt)
 
-      ec2.run_instances(only_keys_matching(opt, whitelist)).tap do |response|
-        response.instances.map(&:instance_id).tap do |ids|
-          ec2.create_tags(resources: ids, tags: opt[:tags]) # tag instances
-          puts ids # report new instance ids
-        end
-      end
+      ## start instance
+      response = ec2.run_instances(only_keys_matching(opt, whitelist))
+      ids = response.instances.map(&:instance_id)
+      ec2.create_tags(resources: ids, tags: opt[:tags]) # tag instances
+      puts ids # report new instance ids
     end
 
     desc 'allocate', 'allocate a new elastic IP address'
