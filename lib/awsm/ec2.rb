@@ -77,7 +77,7 @@ module Awsm
 
     desc 'allocate', 'allocate a new elastic IP address'
     def allocate
-      ec2.allocate_address(domain: 'vpc').map do |eip|
+      ec2.allocate_address(domain: 'vpc').first.tap do |eip|
         puts eip.allocation_id, eip.public_ip
       end
     end
