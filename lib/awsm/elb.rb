@@ -48,6 +48,18 @@ module Awsm
       opt = remove_empty_strings(opt)
       opt = only_keys_matching(opt, whitelist)
       elb.create_load_balancer(opt)
+    desc 'health_check NAME', 'set health-check'
+    method_option :target,              aliases: '-t', default: nil, desc: 'Health check target'
+    method_option :interval,            aliases: '-i', default: nil, desc: 'Check interval'
+    method_option :timeout,             aliases: '-o', default: nil, desc: 'Check timeout'
+    method_option :unhealthy_threshold, aliases: '-u', default: nil, desc: 'Unhealthy threshold'
+    method_option :healthy_threshold,   aliases: '-h', default: nil, desc: 'Healthy threshold'
+    def health_check(name)
+      opt = load_cfg.merge(options.reject(&:nil?))
+      hc = elb.configure_health_check(load_balancer_name: name, health_check: opt[:health_check])
+      hc.map(&:health_check).flatten.first.tap do |h|
+        print_table h.to_hash
+      end
     end
 
     desc 'delete NAME', 'delete load-balancer'
