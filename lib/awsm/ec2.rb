@@ -30,15 +30,27 @@ module Awsm
     end
 
     desc 'create NAME', 'run new EC2 instance'
+    method_option :subnet,    :aliases => '-s', :default => nil,  :desc => 'VPC subnet to use; default nil (classic)'
+    method_option :public_ip, :aliases => '-p', :default => true, :desc => 'Assign public IP to VPC instances'
     def create(name)
-      opt = load_cfg
+      opt = load_cfg.merge(symbolize_keys(options))
       whitelist = %i[image_id min_count max_count key_name security_group_ids user_data instance_type kernel_id
                      ramdisk_id  monitoring subnet_id disable_api_termination instance_initiated_shutdown_behavior
-                     additional_info iam_instance_profile ebs_optimized]
+                     additional_info iam_instance_profile ebs_optimized network_interfaces]
 
       opt[:min_count] ||= 1
       opt[:max_count] ||= 1
       opt[:monitoring] = {enabled: opt.fetch(:monitoring, {}).fetch(:state, '') == 'enabled'}
+
+      ## set subnet from human-readable name, either for network interface, or instance-level
+      if opt[:subnet]
+        subnet = find_subnet(opt[:subnet])
+        opt[:network_interfaces] ? (opt[:network_interfaces][0][:subnet_id] = subnet) : (opt[:subnet_id] = subnet)
+      end
+
+      (opt[:tags] = opt.fetch(:tags, [])).find_index { |t| t[:key] == 'Name' }.tap do |index|
+        opt[:tags][index || 0] = {key: 'Name', value: name}
+      end
 
       ## TODO: block_device_mappings
       ## TODO: network_interfaces
