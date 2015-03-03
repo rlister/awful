@@ -1,3 +1,5 @@
+require 'base64'
+
 module Awsm
 
   class Ec2 < Thor
@@ -56,6 +58,9 @@ module Awsm
       ## TODO: placement
 
       opt[:security_group_ids] = opt.fetch(:security_groups, []).map { |sg| sg[:group_id] }
+      opt[:user_data] = Base64.strict_encode64(opt[:user_data]) if opt[:user_data]
+
+      # scrub unwanted fields from a copied instance dump
       opt = remove_empty_strings(opt)
 
       ec2.run_instances(only_keys_matching(opt, whitelist)).tap do |response|
