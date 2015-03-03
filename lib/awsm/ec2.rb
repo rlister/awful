@@ -70,10 +70,9 @@ module Awsm
       ec2.create_tags(resources: ids, tags: opt[:tags]) # tag instances
       puts ids # report new instance ids
 
-      ## wait for instance to be running
-      puts "waiting for running state"
+      ## wait for instance to enter running state
+      puts 'running instance ...'
       ec2.wait_until(:instance_running, instance_ids: ids)
-      puts 'running'
 
       ## allocate and associate new elastic IPs
       ids.map { |id| associate(id, allocate.allocation_id) } if opt[:elastic_ip]
