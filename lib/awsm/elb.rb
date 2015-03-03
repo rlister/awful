@@ -47,7 +47,12 @@ module Awsm
       opt.delete(:availability_zones) unless opt.fetch(:subnets, []).empty?
       opt = remove_empty_strings(opt)
       opt = only_keys_matching(opt, whitelist)
-      elb.create_load_balancer(opt)
+      elb.create_load_balancer(opt).map(&:dns_name).flatten.tap do |dns|
+        print_table dns
+      end
+      health_check(name) if opt[:health_check]
+    end
+
     desc 'health_check NAME', 'set health-check'
     method_option :target,              aliases: '-t', default: nil, desc: 'Health check target'
     method_option :interval,            aliases: '-i', default: nil, desc: 'Check interval'
