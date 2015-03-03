@@ -53,7 +53,6 @@ module Awsm
       end
 
       ## TODO: block_device_mappings
-      ## TODO: network_interfaces
       ## TODO: placement
 
       opt[:security_group_ids] = opt.fetch(:security_groups, []).map { |sg| sg[:group_id] }
