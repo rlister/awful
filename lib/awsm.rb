@@ -72,4 +72,15 @@ module Awsm
     end
   end
 
+  ## return id for subnet by name
+  def find_subnet(name)
+    if name.match(/^subnet-[\d[a-f]]{8}$/)
+      name
+    else
+      ec2.describe_subnets.map(&:subnets).flatten.find do |subnet|
+        tag_name(subnet) == name
+      end.subnet_id
+    end
+  end
+
 end
