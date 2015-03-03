@@ -30,7 +30,9 @@ module Awsm
 
     desc 'delete NAME', 'delete autoscaling group'
     def delete(name)
-      autoscaling.delete_auto_scaling_group(auto_scaling_group_name: name)
+      if yes? "Really delete auto-scaling group #{name}?", :yellow
+        autoscaling.delete_auto_scaling_group(auto_scaling_group_name: name)
+      end
     end
 
     desc 'instances', 'list instance IDs for instances in groups matching NAME'
