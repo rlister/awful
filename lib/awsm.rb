@@ -38,8 +38,9 @@ module Awsm
     end
   end
 
-  def load_cfg
-    $stdin.tty? ? {} : symbolize_keys(YAML.load($stdin.read))
+  def load_cfg(options = {})
+    cfg = $stdin.tty? ? {} : symbolize_keys(YAML.load($stdin.read))
+    cfg.merge(symbolize_keys(options.reject{ |_,v| v.nil? }))
   end
 
   def only_keys_matching(hash, keylist)
