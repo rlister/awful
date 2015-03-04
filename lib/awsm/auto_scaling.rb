@@ -90,8 +90,11 @@ module Awsm
     end
 
     desc 'update NAME', 'update existing auto-scaling group'
+    method_option :desired_capacity, aliases: '-d', default: nil, desc: 'Set desired capacity'
+    method_option :min_size,         aliases: '-m', default: nil, desc: 'Set minimum capacity'
+    method_option :max_size,         aliases: '-M', default: nil, desc: 'Set maximum capacity'
     def update(name)
-      opt = load_cfg
+      opt = load_cfg(options)
       whitelist = %i[auto_scaling_group_name launch_configuration_name min_size max_size desired_capacity default_cooldown availability_zones
                      health_check_type health_check_grace_period placement_group vpc_zone_identifier termination_policies ]
 
