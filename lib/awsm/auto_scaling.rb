@@ -120,7 +120,7 @@ module Awsm
       instances.first(num.to_i).map(&:instance_id).tap do |ids|
         if yes? "Really terminate #{num} instances: #{ids.join(',')}?", :yellow
           ids.each do |id|
-            autoscaling.terminate_instance_in_auto_scaling_group(instance_id: id, should_decrement_desired_capacity: options[:decrement])
+            autoscaling.terminate_instance_in_auto_scaling_group(instance_id: id, should_decrement_desired_capacity: options[:decrement] && true)
           end
         end
       end
