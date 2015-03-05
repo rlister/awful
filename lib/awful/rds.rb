@@ -29,6 +29,15 @@ module Awful
       end
     end
 
+    desc 'dns NAME', 'show DNS name and port for DB instance NAME'
+    def dns(name)
+      rds.describe_db_instances.map(&:db_instances).flatten.find do |db|
+        db.db_instance_identifier == name
+      end.tap do |db|
+        puts "#{db.endpoint.address}:#{db.endpoint.port}"
+      end
+    end
+
   end
 
 end
