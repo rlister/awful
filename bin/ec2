@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 #-*- mode: ruby; -*-
 
-require 'awsm'
-require 'awsm/ec2'
+require 'awful'
+require 'awful/ec2'
 
-Awsm::Ec2.start(ARGV)
+Awful::Ec2.start(ARGV)

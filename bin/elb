@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 #-*- mode: ruby; -*-
 
-require 'awsm'
-require 'awsm/elb'
+require 'awful'
+require 'awful/elb'
 
-Awsm::Elb.start(ARGV)
+Awful::Elb.start(ARGV)

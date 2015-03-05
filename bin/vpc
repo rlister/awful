@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 #-*- mode: ruby; -*-
 
-require 'awsm'
-require 'awsm/vpc'
+require 'awful'
+require 'awful/vpc'
 
-Awsm::Vpc.start(ARGV)
+Awful::Vpc.start(ARGV)

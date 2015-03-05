@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 #-*- mode: ruby; -*-
 
-require 'awsm'
-require 'awsm/subnet'
+require 'awful'
+require 'awful/subnet'
 
-Awsm::Subnet.start(ARGV)
+Awful::Subnet.start(ARGV)
