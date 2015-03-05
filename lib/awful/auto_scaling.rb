@@ -60,7 +60,7 @@ module Awful
       end.map(&:instance_id)
 
       ec2 = Aws::EC2::Client.new
-      ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
+      ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).map do |instance|
         fields.map { |field| instance.send(field) }
       end.tap do |list|
         print_table list
