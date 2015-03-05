@@ -38,6 +38,15 @@ module Awsm
       puts YAML.dump(stringify_keys(lb))
     end
 
+    desc 'dns NAME', 'get DNS name for load-balancers matching NAME'
+    def dns(name)
+      elb.describe_load_balancers.map(&:load_balancer_descriptions).flatten.select do |elb|
+        elb.load_balancer_name.match(name)
+      end.map(&:dns_name).tap do |dns|
+        puts dns
+      end
+    end
+
     desc 'create NAME', 'create new load-balancer'
     def create(name)
       whitelist = %i[load_balancer_name listeners availability_zones subnets security_groups scheme tags]
