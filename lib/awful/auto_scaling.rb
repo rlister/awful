@@ -1,7 +1,7 @@
-module Awsm
+module Awful
 
   class AutoScaling < Thor
-    include Awsm
+    include Awful
 
     desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

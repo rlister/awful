@@ -1,10 +1,10 @@
-require 'awsm/version'
+require "awful/version"
 
 require 'aws-sdk'
 require 'thor'
 require 'yaml'
 
-module Awsm
+module Awful
 
   def ec2
     @ec2 ||= Aws::EC2::Client.new

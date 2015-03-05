@@ -1,7 +1,7 @@
-module Awsm
+module Awful
 
   class Subnet < Thor
-    include Awsm
+    include Awful
 
     desc 'ls [PATTERN]', 'list subnets [with any tags matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

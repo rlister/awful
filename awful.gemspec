@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'awsm/version'
+require 'awful/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "awsm"
-  spec.version       = Awsm::VERSION
+  spec.name          = "awful"
+  spec.version       = Awful::VERSION
   spec.authors       = ["Ric Lister"]
   spec.email         = ["rlister+gh@gmail.com"]
   spec.summary       = %q{Simple AWS command-line tool.}
