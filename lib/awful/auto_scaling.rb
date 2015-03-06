@@ -53,7 +53,9 @@ module Awful
     desc 'ips NAME', 'list IPs for instances in groups matching NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ips(name)
-      fields = options[:long] ? %i[public_ip_address private_ip_address instance_id image_id instance_type launch_time] : %i[ public_ip_address ]
+      fields = options[:long] ?
+        ->(i) { [ i.public_ip_address, i.private_ip_address, i.instance_id, i.image_id, i.instance_type, i.placement.availability_zone, i.state.name, i.launch_time ] } :
+        ->(i) { [ i.public_ip_address ] }
 
       instance_ids = autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
         instance.auto_scaling_group_name.match(name)
@@ -61,7 +63,7 @@ module Awful
 
       ec2 = Aws::EC2::Client.new
       ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).map do |instance|
-        fields.map { |field| instance.send(field) }
+        fields.call(instance)
       end.tap do |list|
         print_table list
       end
