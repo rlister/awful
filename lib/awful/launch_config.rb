@@ -23,6 +23,20 @@ module Awful
       autoscaling.delete_launch_configuration(launch_configuration_name: name)
     end
 
+    desc 'clean NAME [NUM]', 'delete oldest NUM launch configs matching NAME'
+    def clean(name, num = 1)
+      autoscaling.describe_launch_configurations.map(&:launch_configurations).flatten.select do |lc|
+        lc.launch_configuration_name.match(name)
+      end.sort_by(&:created_time).first(num.to_i).map(&:launch_configuration_name).tap do |names|
+        puts names
+        if yes? 'delete these launch configs?', :yellow
+          names.each do |name|
+            autoscaling.delete_launch_configuration(launch_configuration_name: name)
+          end
+        end
+      end
+    end
+
     desc 'dump NAME', 'dump existing launch_configuration as yaml'
     def dump(name)
       lc = autoscaling.describe_launch_configurations(launch_configuration_names: Array(name)).map(&:launch_configurations).flatten.first.to_hash
