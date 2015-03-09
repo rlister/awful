@@ -141,7 +141,17 @@ module Awful
           end
         end
       end
+    end
 
+    desc 'stop NAME [NUMBER]', 'stop NUMBER instances in group NAME'
+    method_option :newest, aliases: '-n', default: false, type: :boolean, desc: 'Stop newest instances instead of oldest'
+    def stop(name, num = 1)
+      ins = options[:newest] ? newest(name) : oldest(name)
+      ins.first(num.to_i).map(&:instance_id).tap do |ids|
+        if yes? "Really stop #{num} instances: #{ids.join(',')}?", :yellow
+          ec2.stop_instances(instance_ids: ids)
+        end
+      end
     end
 
   end
