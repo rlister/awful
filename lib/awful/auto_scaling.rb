@@ -115,16 +115,24 @@ module Awful
       end
     end
 
+    no_commands do
+      def oldest(name)
+        instance_ids = autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
+          instance.auto_scaling_group_name == name
+        end.map(&:instance_id)
+        ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time)
+      end
+
+      def newest(name)
+        oldest(name).reverse
+      end
+    end
+
     desc 'terminate NAME [NUMBER]', 'terminate NUMBER instances in group NAME'
     method_option :decrement, aliases: '-d', default: false, type: :boolean, desc: 'Decrement desired capacity for each terminated instance'
     method_option :newest,    aliases: '-n', default: false, type: :boolean, desc: 'Delete newest instances instead of oldest'
     def terminate(name, num = 1)
-      instance_ids = autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
-        instance.auto_scaling_group_name == name
-      end.map(&:instance_id)
-
-      ins = ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time)
-      ins = ins.reverse if options[:newest]
+      ins = options[:newest] ? newest(name) : oldest(name)
 
       ins.first(num.to_i).map(&:instance_id).tap do |ids|
         if yes? "Really terminate #{num} instances: #{ids.join(',')}?", :yellow
