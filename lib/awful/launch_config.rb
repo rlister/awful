@@ -54,12 +54,26 @@ module Awful
     end
 
     desc 'create [NAME]', 'create a new launch configuration'
+    method_option :timestamp, aliases: '-t', default: false, desc: 'Add timestamp to launch config name'
+    method_option :patch,     aliases: '-p', default: false, desc: 'Add release to launch config name'
     def create(name)
-      opt = load_cfg
+      opt = load_cfg(options)
+
       whitelist = %i[launch_configuration_name image_id key_name security_groups classic_link_vpc_id classic_link_vpc_security_groups user_data
                      instance_id instance_type kernel_id ramdisk_id block_device_mappings instance_monitoring spot_price iam_instance_profile
                      ebs_optimized associate_public_ip_address placement_tenancy]
-      opt[:launch_configuration_name] = "#{name}-#{Time.now.utc.strftime('%Y%m%d%H%M%S')}"
+
+      if options[:timestamp]
+        opt[:launch_configuration_name] = "#{name}-#{Time.now.utc.strftime('%Y%m%d%H%M%S')}"
+      elsif opt[:patch]
+        print "bumping version from latest: "
+        m = latest(name).match(/^#{name}-(\w+)\.(\w+)\.(\w+)$/)
+        raise "latest launch config does not match format #{name}-x.x.x" unless m
+        opt[:launch_configuration_name] = "#{name}-#{[m[1], m[2], m[3].to_i + 1].join('.')}"
+      else
+        opt[:launch_configuration_name] = name
+      end
+
       opt[:user_data] = Base64.encode64(opt[:user_data]) # encode user data
       opt = remove_empty_strings(opt)
       opt = only_keys_matching(opt, whitelist)
