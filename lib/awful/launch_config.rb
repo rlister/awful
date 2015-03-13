@@ -44,6 +44,15 @@ module Awful
       puts YAML.dump(stringify_keys(lc))
     end
 
+    desc 'latest', 'latest'
+    def latest(name)
+      autoscaling.describe_launch_configurations.map(&:launch_configurations).flatten.select do |lc|
+        lc.launch_configuration_name.match(/^#{name}/)
+      end.sort_by(&:created_time).last.launch_configuration_name.tap do |latest|
+        puts latest
+      end
+    end
+
     desc 'create [NAME]', 'create a new launch configuration'
     def create(name)
       opt = load_cfg
