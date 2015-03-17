@@ -27,6 +27,26 @@ module Awful
       end
     end
 
+    desc 'create NAME', 'create subnet'
+    def create(name)
+      opt = load_cfg
+      whitelist = %i[vpc_id cidr_block availability_zone]
+      opt = remove_empty_strings(opt)
+      ec2.create_subnet(only_keys_matching(opt, whitelist)).tap do |response|
+        id = response.map(&:subnet).map(&:subnet_id)
+        ec2.create_tags(resources: Array(id), tags: opt[:tags]) if opt[:tags]
+        puts id
+      end
+    end
+
+    desc 'delete NAME', 'delete subnet with name or ID'
+    def delete(name)
+      id = find_subnet(name)
+      if id and yes?("really delete subnet #{name} (#{id})?")
+        ec2.delete_subnet(subnet_id: id)
+      end
+    end
+
   end
 
 end
