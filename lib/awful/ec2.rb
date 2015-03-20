@@ -117,6 +117,26 @@ module Awful
       end
     end
 
+    desc 'stop NAME', 'stop a running instance'
+    def stop(name)
+      ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
+        instance.instance_id == name or (n = tag_name(instance) and n == name)
+      end.instance_id.tap do |id|
+        if yes? "Really stop instance #{name} (#{id})?", :yellow
+          ec2.stop_instances(instance_ids: Array(id))
+        end
+      end
+    end
+
+    desc 'start NAME', 'start a running instance'
+    def start(name)
+      ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
+        instance.instance_id == name or (n = tag_name(instance) and n == name)
+      end.instance_id.tap do |id|
+        ec2.start_instances(instance_ids: Array(id))
+      end
+    end
+
     desc 'delete NAME', 'terminate a running instance'
     def delete(name)
       id =
