@@ -117,6 +117,19 @@ module Awful
       end
     end
 
+    desc 'update NAME', 'update an existing instance'
+    def user_data(name)
+      opt = load_cfg(options)
+      ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
+        instance.instance_id == name or (n = tag_name(instance) and n.match(name))
+      end.tap do |instance|
+        ec2.modify_instance_attribute(instance_id: instance.instance_id, user_data: {
+          #value: Base64.strict_encode64(opt[:user_data])
+          value: opt[:user_data]
+        })
+      end
+    end
+
     desc 'stop NAME', 'stop a running instance'
     def stop(name)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
