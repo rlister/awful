@@ -75,9 +75,9 @@ module Awful
       puts YAML.dump(stringify_keys(asg))
     end
 
-    desc 'create NAME', 'create a new auto-scaling group'
-    def create(name)
-      opt = load_cfg
+    desc 'create NAME [FILE]', 'create a new auto-scaling group'
+    def create(name, file = nil)
+      opt = load_cfg(options, file)
       whitelist = %i[auto_scaling_group_name launch_configuration_name instance_id min_size max_size desired_capacity default_cooldown availability_zones
                      load_balancer_names health_check_type health_check_grace_period placement_group vpc_zone_identifier termination_policies tags ]
 
@@ -91,13 +91,14 @@ module Awful
       autoscaling.create_auto_scaling_group(opt)
     end
 
-    desc 'update NAME', 'update existing auto-scaling group'
+    desc 'update NAME [FILE]', 'update existing auto-scaling group'
     method_option :desired_capacity,          aliases: '-d', default: nil, desc: 'Set desired capacity'
     method_option :min_size,                  aliases: '-m', default: nil, desc: 'Set minimum capacity'
     method_option :max_size,                  aliases: '-M', default: nil, desc: 'Set maximum capacity'
     method_option :launch_configuration_name, aliases: '-l', default: nil, desc: 'Launch config name'
-    def update(name)
-      opt = load_cfg(options)
+    def update(name, file = nil)
+      opt = load_cfg(options, file)
+
       whitelist = %i[auto_scaling_group_name launch_configuration_name min_size max_size desired_capacity default_cooldown availability_zones
                      health_check_type health_check_grace_period placement_group vpc_zone_identifier termination_policies ]
 
