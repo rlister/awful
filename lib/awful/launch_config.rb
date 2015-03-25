@@ -30,8 +30,8 @@ module Awful
       end.sort_by(&:created_time).first(num.to_i).map(&:launch_configuration_name).tap do |names|
         puts names
         if yes? 'delete these launch configs?', :yellow
-          names.each do |name|
-            autoscaling.delete_launch_configuration(launch_configuration_name: name)
+          names.each do |n|
+            autoscaling.delete_launch_configuration(launch_configuration_name: n)
           end
         end
       end
