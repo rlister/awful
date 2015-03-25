@@ -3,6 +3,7 @@ require "awful/version"
 require 'aws-sdk'
 require 'thor'
 require 'yaml'
+require 'erb'
 
 module Awful
 
@@ -42,9 +43,10 @@ module Awful
     end
   end
 
-  def load_cfg(options = {})
-    cfg = $stdin.tty? ? {} : symbolize_keys(YAML.load($stdin.read))
-    cfg.merge(symbolize_keys(options.reject{ |_,v| v.nil? }))
+  def load_cfg(options = {}, file = nil)
+    src = (file and File.read(file)) || ((not $stdin.tty?) and $stdin.read)
+    cfg = src ? YAML.load(::ERB.new(src).result(binding)) : {}
+    symbolize_keys(cfg).merge(symbolize_keys(options.reject{ |_,v| v.nil? }))
   end
 
   def only_keys_matching(hash, keylist)
