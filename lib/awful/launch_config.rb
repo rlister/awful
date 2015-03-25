@@ -78,7 +78,9 @@ module Awful
       opt = remove_empty_strings(opt)
       opt = only_keys_matching(opt, whitelist)
       autoscaling.create_launch_configuration(opt)
-      puts opt[:launch_configuration_name]
+      opt[:launch_configuration_name].tap do |lcname|
+        puts lcname
+      end
     end
 
   end
