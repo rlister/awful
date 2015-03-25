@@ -88,4 +88,15 @@ module Awful
     end
   end
 
+  ## return id for security group by name
+  def find_sg(name)
+    if name.match(/^sg-[\d[a-f]]{8}$/)
+      name
+    else
+      ec2.describe_security_groups.map(&:security_groups).flatten.find do |sg|
+        tag_name(sg) == name
+      end.group_id
+    end
+  end
+
 end
