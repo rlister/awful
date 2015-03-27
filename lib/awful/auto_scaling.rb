@@ -136,8 +136,10 @@ module Awful
     desc 'terminate NAME [NUMBER]', 'terminate NUMBER instances in group NAME'
     method_option :decrement, aliases: '-d', default: false, type: :boolean, desc: 'Decrement desired capacity for each terminated instance'
     method_option :newest,    aliases: '-n', default: false, type: :boolean, desc: 'Delete newest instances instead of oldest'
+    method_option :all,       aliases: '-a', default: false, type: :boolean, desc: 'Terminate all instances in group'
     def terminate(name, num = 1)
       ins = options[:newest] ? newest(name) : oldest(name)
+      num = ins.length if options[:all] # all instances if requested
 
       ins.first(num.to_i).map(&:instance_id).tap do |ids|
         if yes? "Really terminate #{num} instances: #{ids.join(',')}?", :yellow
