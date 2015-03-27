@@ -117,6 +117,8 @@ module Awful
     end
 
     no_commands do
+
+      ## return array of instances in auto-scaling group sorted by age
       def oldest(name)
         instance_ids = autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
           instance.auto_scaling_group_name == name
@@ -124,9 +126,11 @@ module Awful
         ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time)
       end
 
+      ## return array of instances in auto-scaling group, reverse sorted by age, newest first
       def newest(name)
         oldest(name).reverse
       end
+
     end
 
     desc 'terminate NAME [NUMBER]', 'terminate NUMBER instances in group NAME'
