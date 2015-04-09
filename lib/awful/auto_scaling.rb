@@ -69,6 +69,17 @@ module Awful
       end
     end
 
+    desc 'ssh NAME [ARGS]', 'ssh to an instance for this autoscaling group'
+    method_option :all,    aliases: '-a', default: false, desc: 'ssh to all instances'
+    method_option :number, aliases: '-n', default: 1,     desc: 'number of instances to ssh'
+    def ssh(name, *args)
+      ips = ips(name).flatten
+      num = options[:all] ? ips.count : options[:number].to_i
+      ips.last(num).each do |ip|
+        system "ssh #{ip} #{Array(args).join(' ')}"
+      end
+    end
+
     desc 'dump NAME', 'dump existing autoscaling group as yaml'
     def dump(name)
       asg = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: Array(name)).map(&:auto_scaling_groups).flatten.first.to_hash
