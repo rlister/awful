@@ -138,7 +138,11 @@ module Awful
         instance_ids = autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
           instance.auto_scaling_group_name == name
         end.map(&:instance_id)
-        ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time)
+        if instance_ids.empty?
+          []
+        else
+          ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time)
+        end
       end
 
       ## return array of instances in auto-scaling group, reverse sorted by age, newest first
@@ -156,7 +160,10 @@ module Awful
       ins = options[:newest] ? newest(name) : oldest(name)
       num = ins.length if options[:all] # all instances if requested
 
-      ins.first(num.to_i).map(&:instance_id).tap do |ids|
+      if ins.empty?
+        say 'No instances to terminate.', :green
+      else
+        ids = ins.first(num.to_i).map(&:instance_id)
         if yes? "Really terminate #{num} instances: #{ids.join(',')}?", :yellow
           ids.each do |id|
             autoscaling.terminate_instance_in_auto_scaling_group(instance_id: id, should_decrement_desired_capacity: options[:decrement] && true)
