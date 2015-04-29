@@ -87,6 +87,10 @@ module Awful
     end
 
     desc 'create NAME [FILE]', 'create a new auto-scaling group'
+    method_option :desired_capacity,          aliases: '-d', default: nil, desc: 'Set desired capacity'
+    method_option :min_size,                  aliases: '-m', default: nil, desc: 'Set minimum capacity'
+    method_option :max_size,                  aliases: '-M', default: nil, desc: 'Set maximum capacity'
+    method_option :launch_configuration_name, aliases: '-l', default: nil, desc: 'Launch config name'
     def create(name, file = nil)
       opt = load_cfg(options, file)
       whitelist = %i[auto_scaling_group_name launch_configuration_name instance_id min_size max_size desired_capacity default_cooldown availability_zones
