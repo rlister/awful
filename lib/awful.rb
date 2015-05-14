@@ -4,6 +4,7 @@ require 'aws-sdk'
 require 'thor'
 require 'yaml'
 require 'erb'
+require 'dotenv'
 
 module Awful
   class Cli < Thor
