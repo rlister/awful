@@ -1,10 +1,10 @@
 require "awful/version"
 
+require 'dotenv'
 require 'aws-sdk'
 require 'thor'
 require 'yaml'
 require 'erb'
-require 'dotenv'
 
 module Awful
   class Cli < Thor
@@ -48,7 +48,7 @@ module Awful
       end
 
       def load_cfg(options = {}, file = nil)
-        Dotenv.load!(options[:env]) if options[:env]
+        Dotenv.overload(options[:env]) if options[:env]
         src = (file and File.read(file)) || ((not $stdin.tty?) and $stdin.read)
         cfg = src ? YAML.load(::ERB.new(src).result(binding)) : {}
         symbolize_keys(cfg).merge(symbolize_keys(options.reject{ |_,v| v.nil? }))
