@@ -1,7 +1,6 @@
 module Awful
 
-  class SecurityGroup < Thor
-    include Awful
+  class SecurityGroup < Cli
 
     desc 'ls [NAME]', 'list security groups [matching NAME]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

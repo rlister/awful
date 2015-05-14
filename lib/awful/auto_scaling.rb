@@ -1,7 +1,6 @@
 module Awful
 
-  class AutoScaling < Thor
-    include Awful
+  class AutoScaling < Cli
 
     desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

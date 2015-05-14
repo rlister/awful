@@ -1,7 +1,6 @@
 module Awful
 
-  class Rds < Thor
-    include Awful
+  class Rds < Cli
 
     desc 'ls [NAME]', 'list DB instances matching NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

@@ -1,7 +1,6 @@
 module Awful
 
-  class Elb < Thor
-    include Awful
+  class Elb < Cli
 
     desc 'ls [PATTERN]', 'list vpcs [with any tags matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

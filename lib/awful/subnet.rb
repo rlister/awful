@@ -1,7 +1,6 @@
 module Awful
 
-  class Subnet < Thor
-    include Awful
+  class Subnet < Cli
 
     desc 'ls [PATTERN]', 'list subnets [with any tags matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

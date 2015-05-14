@@ -2,8 +2,7 @@ require 'base64'
 
 module Awful
 
-  class LaunchConfig < Thor
-    include Awful
+  class LaunchConfig < Cli
 
     desc 'ls [PATTERN]', 'list launch configs with name matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

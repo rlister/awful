@@ -2,8 +2,7 @@ require 'base64'
 
 module Awful
 
-  class Ec2 < Thor
-    include Awful
+  class Ec2 < Cli
 
     desc 'ls [PATTERN]', 'list EC2 instances [with id or tags matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'

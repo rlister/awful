@@ -1,7 +1,6 @@
 module Awful
 
-  class RouteTable < Thor
-    include Awful
+  class RouteTable < Cli
 
     desc 'ls [PATTERN]', 'list routes'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
