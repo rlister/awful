@@ -85,17 +85,17 @@ module Awful
       puts YAML.dump(stringify_keys(asg))
     end
 
-    desc 'create NAME [FILE]', 'create a new auto-scaling group'
+    desc 'create [FILE]', 'create a new auto-scaling group'
+    method_option :auto_scaling_group_name,   aliases: '-n', default: nil, desc: 'Auto-scaling group name'
+    method_option :launch_configuration_name, aliases: '-l', default: nil, desc: 'Launch config name'
     method_option :desired_capacity,          aliases: '-d', default: nil, desc: 'Set desired capacity'
     method_option :min_size,                  aliases: '-m', default: nil, desc: 'Set minimum capacity'
     method_option :max_size,                  aliases: '-M', default: nil, desc: 'Set maximum capacity'
-    method_option :launch_configuration_name, aliases: '-l', default: nil, desc: 'Launch config name'
-    def create(name, file = nil)
+    def create(file = nil)
       opt = load_cfg(options, file)
       whitelist = %i[auto_scaling_group_name launch_configuration_name instance_id min_size max_size desired_capacity default_cooldown availability_zones
                      load_balancer_names health_check_type health_check_grace_period placement_group vpc_zone_identifier termination_policies tags ]
 
-      opt[:auto_scaling_group_name] = name
       opt = remove_empty_strings(opt)
       opt = only_keys_matching(opt, whitelist)
 
