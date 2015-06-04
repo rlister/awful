@@ -25,6 +25,17 @@ module Awful
       end
     end
 
+    desc 'delete NAME', 'delete AMI'
+    def delete(id)
+      images(options).find do |image|
+        image.image_id.match(id)
+      end.tap do |ami|
+        if yes? "Really deregister image #{ami.name} (#{ami.image_id})?", :yellow
+          ec2.deregister_image(image_id: ami.image_id)
+        end
+      end
+    end
+
   end
 
 end
