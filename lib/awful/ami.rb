@@ -36,6 +36,19 @@ module Awful
       end
     end
 
+    desc 'tags ID [KEY=VALUE]', 'tag an image, or print tags'
+    def tags(id, tag = nil)
+      ami = images(options).find do |image|
+        image.image_id.match(id)
+      end
+      if tag
+        key, value = tag.split('=')
+        ec2.create_tags(resources: [ami.image_id],  tags: [{key: key, value: value}])
+      else
+        puts ami.tags.map { |t| "#{t[:key]}=#{t[:value]}" }
+      end
+    end
+
   end
 
 end
