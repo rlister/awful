@@ -49,6 +49,17 @@ module Awful
       end
     end
 
+    # desc 'copy ID REGION', 'copy image from given REGION to current region'
+    # def copy(id, region)
+    #   current_region = ENV['AWS_REGION']
+    #   ENV['AWS_REGION'] = region
+    #   images(options).find do |image|
+    #     image.image_id.match(id)
+    #   end.tap do |ami|
+    #     ENV['AWS_REGION'] = current_region
+    #     ec2.copy_image(source_image_id: ami.image_id, source_region: region, name: ami.name, description: ami.description)
+    #   end
+    # end
   end
 
 end
