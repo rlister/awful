@@ -60,6 +60,18 @@ module Awful
     #     ec2.copy_image(source_image_id: ami.image_id, source_region: region, name: ami.name, description: ami.description)
     #   end
     # end
+
+    desc 'last NAME', 'get last AMI matching NAME'
+    def last(name, n = 1)
+      images(options).select do |image|
+        image.name.match(name)
+      end.sort_by { |i| i.creation_date }.last(n.to_i).map do |image|
+        image.image_id
+      end.tap do |list|
+        puts list
+      end
+    end
+
   end
 
 end
