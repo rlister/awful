@@ -194,7 +194,7 @@ module Awful
       if procs.empty?
         autoscaling.suspend_processes(auto_scaling_group_name: name)
       else
-        autoscaling.suspend_processes(auto_scaling_group_name: name, scaling_processes: procs.map(&:capitalize))
+        autoscaling.suspend_processes(auto_scaling_group_name: name, scaling_processes: procs)
       end
     end
 
@@ -203,7 +203,7 @@ module Awful
       if procs.empty?
         autoscaling.resume_processes(auto_scaling_group_name: name)
       else
-        autoscaling.resume_processes(auto_scaling_group_name: name, scaling_processes: procs.map(&:capitalize))
+        autoscaling.resume_processes(auto_scaling_group_name: name, scaling_processes: procs)
       end
     end
 
