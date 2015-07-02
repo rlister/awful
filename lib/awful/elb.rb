@@ -83,6 +83,16 @@ module Awful
       end
     end
 
+    desc 'register INSTANCES', 'register listed instance IDs with ELB'
+    def register(name, *instance_ids)
+      elb.register_instances_with_load_balancer(load_balancer_name: name, instances: instance_ids.map{ |id| {instance_id: id} })
+    end
+
+    desc 'deregister INSTANCES', 'deregister listed instance IDs from ELB'
+    def deregister(name, *instance_ids)
+      elb.deregister_instances_from_load_balancer(load_balancer_name: name, instances: instance_ids.map{ |id| {instance_id: id} })
+    end
+
   end
 
 end
