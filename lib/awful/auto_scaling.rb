@@ -182,6 +182,13 @@ module Awful
       end
     end
 
+    desc 'processes', 'describe scaling process types for use with suspend/resume'
+    def processes
+      autoscaling.describe_scaling_process_types.processes.map(&:process_name).sort.tap do |procs|
+        puts procs
+      end
+    end
+
     desc 'suspend NAME [PROCS]', 'suspend all [or listed] processes for auto-scaling group NAME'
     def suspend(name, *procs)
       if procs.empty?
