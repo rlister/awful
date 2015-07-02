@@ -21,13 +21,16 @@ module Awful
     desc 'instances NAME', 'list instances and states for elb NAME'
     def instances(name)
       instances = elb.describe_instance_health(load_balancer_name: name).map(&:instance_states).flatten
-      instances_by_id = instances.inject({}) { |hash,instance| hash[instance.instance_id] = instance; hash }
-
-      ec2.describe_instances(instance_ids: instances_by_id.keys).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
-        health = instances_by_id[instance.instance_id]
-        [ instance.tags.map(&:value).sort.join(','), instance.public_ip_address, health.state, health.reason_code, health.description ]
-      end.tap do |list|
-         print_table list
+      if instances.empty?
+        puts 'no instances'
+      else
+        instances_by_id = instances.inject({}) { |hash,instance| hash[instance.instance_id] = instance; hash }
+        ec2.describe_instances(instance_ids: instances_by_id.keys).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
+          health = instances_by_id[instance.instance_id]
+          [ instance.tags.map(&:value).sort.join(','), instance.public_ip_address, health.state, health.reason_code, health.description ]
+        end.tap do |list|
+          print_table list
+        end
       end
     end
 
