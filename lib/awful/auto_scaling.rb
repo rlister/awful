@@ -182,6 +182,24 @@ module Awful
       end
     end
 
+    desc 'suspend NAME [PROCS]', 'suspend all [or listed] processes for auto-scaling group NAME'
+    def suspend(name, *procs)
+      if procs.empty?
+        autoscaling.suspend_processes(auto_scaling_group_name: name)
+      else
+        autoscaling.suspend_processes(auto_scaling_group_name: name, scaling_processes: procs.map(&:capitalize))
+      end
+    end
+
+    desc 'resume NAME [PROCS]', 'resume all [or listed] processes for auto-scaling group NAME'
+    def resume(name, *procs)
+      if procs.empty?
+        autoscaling.resume_processes(auto_scaling_group_name: name)
+      else
+        autoscaling.resume_processes(auto_scaling_group_name: name, scaling_processes: procs.map(&:capitalize))
+      end
+    end
+
   end
 
 end
