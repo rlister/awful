@@ -190,8 +190,13 @@ module Awful
     end
 
     desc 'suspend NAME [PROCS]', 'suspend all [or listed] processes for auto-scaling group NAME'
+    method_option :list, aliases: '-l', default: false, type: :boolean, desc: 'list currently suspended processes'
     def suspend(name, *procs)
-      if procs.empty?
+      if options[:list]
+        autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: Array(name)).map(&:auto_scaling_groups).flatten.first.suspended_processes.tap do |list|
+          print_table list.map{ |proc| [ proc.process_name, proc.suspension_reason] }
+        end
+      elsif procs.empty?
         autoscaling.suspend_processes(auto_scaling_group_name: name)
       else
         autoscaling.suspend_processes(auto_scaling_group_name: name, scaling_processes: procs)
