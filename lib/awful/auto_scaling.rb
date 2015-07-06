@@ -123,6 +123,12 @@ module Awful
       ## update the group
       autoscaling.update_auto_scaling_group(only_keys_matching(opt, whitelist))
 
+      # ## update load_balancers if given
+      # ## TODO: maybe delete instead if empty?
+      # if opt[:load_balancer_names]
+      #   autoscaling.attach_load_balancers(auto_scaling_group_name: name, load_balancer_names: opt[:load_balancer_names])
+      # end
+
       ## update any tags
       if opt[:tags]
         tags = opt[:tags].map { |tag| tag.merge(resource_id: name, resource_type: 'auto-scaling-group') }
