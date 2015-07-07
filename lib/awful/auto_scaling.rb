@@ -218,6 +218,17 @@ module Awful
       end
     end
 
+    desc 'attach NAME INSTANCE_IDS', 'attach instances to auto-scaling group and increase desired capacity'
+    def attach(name, *instance_ids)
+      autoscaling.attach_instances(auto_scaling_group_name: name, instance_ids: instance_ids)
+    end
+
+    desc 'detach NAME INSTANCE_IDS', 'detach instances from auto-scaling group'
+    method_option :decrement, aliases: '-d', default: false, type: :boolean, desc: 'should decrement desired capacity'
+    def detach(name, *instance_ids)
+      autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: instance_ids, should_decrement_desired_capacity: options[:decrement])
+    end
+
   end
 
 end
