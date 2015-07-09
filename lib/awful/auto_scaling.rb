@@ -69,13 +69,15 @@ module Awful
     end
 
     desc 'ssh NAME [ARGS]', 'ssh to an instance for this autoscaling group'
-    method_option :all,    aliases: '-a', default: false, desc: 'ssh to all instances'
-    method_option :number, aliases: '-n', default: 1,     desc: 'number of instances to ssh'
+    method_option :all,        aliases: '-a', default: false, desc: 'ssh to all instances'
+    method_option :number,     aliases: '-n', default: 1,     desc: 'number of instances to ssh'
+    method_option :login_name, aliases: '-l', default: nil,   desc: 'login name to pass to ssh'
     def ssh(name, *args)
       ips = ips(name).flatten
       num = options[:all] ? ips.count : options[:number].to_i
+      login_name = options[:login_name] ? "-l #{options[:login_name]}" : ''
       ips.last(num).each do |ip|
-        system "ssh #{ip} #{Array(args).join(' ')}"
+        system "ssh #{login_name} #{ip} #{Array(args).join(' ')}"
       end
     end
 
