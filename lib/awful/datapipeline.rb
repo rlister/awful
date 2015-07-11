@@ -11,7 +11,6 @@ module Awful
       end
 
       if options[:long]
-        fields = %w[ @name @creationTime ]
         datapipeline.describe_pipelines(pipeline_ids: dps.map(&:id)).pipeline_description_list.map do |dp|
           dp.fields.each_with_object({}) do |f, h|
             h[f.key] = f.string_value # convert array of structs to hash
