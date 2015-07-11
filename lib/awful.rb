@@ -107,7 +107,6 @@ module Awful
         end
       end
 
-
     end
   end
 end
