@@ -24,7 +24,8 @@ module Awful
       end
 
       def rds
-        @rds || Aws::RDS::Client.new
+        @rds ||= Aws::RDS::Client.new
+      end
       end
 
       def symbolize_keys(thing)
