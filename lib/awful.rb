@@ -26,6 +26,9 @@ module Awful
       def rds
         @rds ||= Aws::RDS::Client.new
       end
+
+      def datapipeline
+        @datapipeline ||= Aws::DataPipeline::Client.new
       end
 
       def symbolize_keys(thing)

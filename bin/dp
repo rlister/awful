@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awful'
+require 'awful/datapipeline'
+
+Awful::DataPipeline.start(ARGV)
