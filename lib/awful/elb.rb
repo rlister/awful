@@ -19,17 +19,22 @@ module Awful
     end
 
     desc 'instances NAME', 'list instances and states for elb NAME'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def instances(name)
       instances = elb.describe_instance_health(load_balancer_name: name).map(&:instance_states).flatten
       if instances.empty?
-        puts 'no instances'
+        instances.tap { puts 'no instances' }
       else
         instances_by_id = instances.inject({}) { |hash,instance| hash[instance.instance_id] = instance; hash }
-        ec2.describe_instances(instance_ids: instances_by_id.keys).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
-          health = instances_by_id[instance.instance_id]
-          [ instance.tags.map(&:value).sort.join(','), instance.public_ip_address, health.state, health.reason_code, health.description ]
-        end.tap do |list|
-          print_table list
+        if options[:long]
+          ec2.describe_instances(instance_ids: instances_by_id.keys).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
+            health = instances_by_id[instance.instance_id]
+            [ instance.instance_id, instance.tags.map(&:value).sort.join(','), instance.public_ip_address, health.state, health.reason_code, health.description ]
+          end.tap do |list|
+            print_table list
+          end
+        else
+          instances_by_id.keys.tap { |list| puts list }
         end
       end
     end
