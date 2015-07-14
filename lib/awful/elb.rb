@@ -98,6 +98,17 @@ module Awful
       elb.deregister_instances_from_load_balancer(load_balancer_name: name, instances: instance_ids.map{ |id| {instance_id: id} })
     end
 
+    desc 'status [INSTANCE_IDS]', 'show health status for all instances, or listed instance ids'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def status(name, *instance_ids)
+      elb.describe_instance_health(load_balancer_name: name, instances: instance_ids.map { |id| {instance_id: id} }).instance_states.tap do |instances|
+        if options[:long]
+          print_table instances.map { |i| [ i.instance_id, i.state, i.reason_code, i.description ] }
+        else
+          puts instances.map { |i| i.state }
+        end
+      end
+    end
   end
 
 end
