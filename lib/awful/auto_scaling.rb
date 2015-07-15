@@ -231,6 +231,20 @@ module Awful
       autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: instance_ids, should_decrement_desired_capacity: options[:decrement])
     end
 
+    desc 'launch_configuration NAMES', 'get launch configs for given ASGs'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def launch_configuration(*names)
+      autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).map(&:auto_scaling_groups).flatten.each_with_object({}) do |asg, h|
+        h[asg.auto_scaling_group_name] = asg.launch_configuration_name
+      end.tap do |hash|
+        if options[:long]
+          print_table hash
+        else
+          puts hash.values
+        end
+      end
+    end
+
   end
 
 end
