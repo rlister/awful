@@ -34,10 +34,17 @@ module Awful
       end
     end
 
-    desc 'instances', 'list instance IDs for instances in groups matching NAME'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    desc 'instances', 'list instances for instances in groups matching NAME'
+    method_option :long,                 aliases: '-l', default: false, desc: 'Long listing'
+    method_option :launch_configuration, aliases: '-L', default: false, desc: 'Get instance launch_configs'
     def instances(name)
-      fields = options[:long] ? %i[instance_id auto_scaling_group_name availability_zone lifecycle_state health_status launch_configuration_name] : %i[instance_id]
+      fields = if options[:long]
+                 %i[ instance_id auto_scaling_group_name availability_zone lifecycle_state health_status launch_configuration_name ]
+               elsif options[:launch_configuration]
+                 %i[ instance_id launch_configuration_name ]
+               else
+                 %i[ instance_id ]
+               end
 
       autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
         instance.auto_scaling_group_name.match(name)
