@@ -29,10 +29,9 @@ module Awful
         if options[:long]
           ec2.describe_instances(instance_ids: instances_by_id.keys).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
             health = instances_by_id[instance.instance_id]
-            [ instance.instance_id, instance.tags.map(&:value).sort.join(','), instance.public_ip_address, health.state, health.reason_code, health.description ]
-          end.tap do |list|
-            print_table list
-          end
+            instance_name = tag_name(instance) || '-'
+            [ instance.instance_id, instance_name, instance.public_ip_address, health.state, health.reason_code, health.description ]
+          end.tap { |list| print_table list }
         else
           instances_by_id.keys.tap { |list| puts list }
         end
