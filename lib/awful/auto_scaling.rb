@@ -48,12 +48,11 @@ module Awful
 
       autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
         instance.auto_scaling_group_name.match(name)
-      end.map do |instance|
-        fields.map { |field| instance.send(field) }
-      end.tap do |list|
-        print_table list
+      end.tap do |instances|
+        instances.map do |instance|
+          fields.map { |field| instance.send(field) }
+        end.tap { |list| print_table list }
       end
-
     end
 
     desc 'ips NAME', 'list IPs for instances in groups matching NAME'
