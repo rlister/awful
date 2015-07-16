@@ -263,7 +263,9 @@ module Awful
       autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
         instance.auto_scaling_group_name.match(name) and instance.launch_configuration_name != asg.launch_configuration_name
       end.tap do |olds|
-        if options[:detach]
+        if olds.empty?
+          # noop
+        elsif options[:detach]
           autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
         elsif options[:deregister]
           asg.load_balancer_names.each do |elb_name|
