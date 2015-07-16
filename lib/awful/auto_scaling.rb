@@ -267,13 +267,14 @@ module Awful
         elsif options[:detach]
           autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
         elsif options[:deregister]
-          asg.load_balancer_names.each do |elb_name|
+          asg.load_balancer_names.map do |elb_name|
             elb.deregister_instances_from_load_balancer(load_balancer_name: elb_name, instances: olds.map { |i| { instance_id: i.instance_id } })
-          end
+          end.tap { puts "Deregistered: #{olds.map(&:instance_id).join(',')}" }
         elsif options[:terminate]
-          olds.each do |instance|
+          olds.map do |instance|
             autoscaling.terminate_instance_in_auto_scaling_group(instance_id: instance.instance_id, should_decrement_desired_capacity: options[:decrement] && true)
-          end
+            instance.instance_id
+          end.tap { |ids| say("Terminated: #{ids.join(',')}", :yellow) }
         elsif options[:long]
           print_table olds.map { |i| [ i.instance_id, i.launch_configuration_name ] }
         else
