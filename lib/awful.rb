@@ -8,7 +8,8 @@ require 'erb'
 
 module Awful
   class Cli < Thor
-    class_option :env, aliases: '-e', default: nil, desc: 'Load environment variables from file'
+    class_option :env,   aliases: '-e', default: nil, desc: 'Load environment variables from file'
+    class_option :quiet, aliases: '-q', default: nil, desc: 'Quieten output'
 
     no_commands do
       def ec2
