@@ -89,8 +89,9 @@ module Awful
 
     desc 'dump NAME', 'dump existing autoscaling group as yaml'
     def dump(name)
-      asg = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: Array(name)).map(&:auto_scaling_groups).flatten.first.to_hash
-      puts YAML.dump(stringify_keys(asg))
+      autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: Array(name)).map(&:auto_scaling_groups).flatten.first.to_hash.tap do |asg|
+        puts YAML.dump(stringify_keys(asg)) unless options[:quiet]
+      end
     end
 
     desc 'create [FILE]', 'create a new auto-scaling group'
