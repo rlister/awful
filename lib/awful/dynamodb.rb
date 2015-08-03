@@ -60,6 +60,17 @@ module Awful
       dynamodb.delete_table(table_name: name)
     end
 
+    desc 'put_items NAME', 'puts json items into the table with NAME'
+    def put_items(name, file = nil)
+      io = (file and File.open(file)) || ((not $stdin.tty?) and $stdin)
+      count = 0
+      io.each_line do |line|
+        dynamodb.put_item(table_name: name, item: JSON.parse(line))
+        count += 1
+      end
+      count.tap { |c| puts "put #{c} items" }
+    end
+
   end
 
 end
