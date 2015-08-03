@@ -36,8 +36,8 @@ module Awful
       end
     end
 
-    desc 'create NAME', 'create table with NAME'
-    def create(name, file = nil)
+    desc 'create_table NAME', 'create table with NAME'
+    def create_table(name, file = nil)
       opt = load_cfg(options, file)
       params = only_keys_matching(opt, %i[attribute_definitions key_schema])
       params[:table_name] = name
