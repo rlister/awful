@@ -35,6 +35,26 @@ module Awful
         scan(name, r.last_evaluated_key)
       end
     end
+
+    desc 'create NAME', 'create table with NAME'
+    def create(name, file = nil)
+      opt = load_cfg(options, file)
+      params = only_keys_matching(opt, %i[attribute_definitions key_schema])
+      params[:table_name] = name
+      params[:provisioned_throughput] = only_keys_matching(opt[:provisioned_throughput], %i[read_capacity_units write_capacity_units])
+      params[:local_secondary_indexes] = opt[:local_secondary_indexes].map do |lsi|
+        only_keys_matching(lsi, %i[index_name key_schema projection])
+      end
+      params[:global_secondary_indexes] = opt[:global_secondary_indexes].map do |gsi|
+        only_keys_matching(gsi, %i[index_name key_schema projection]).tap do |g|
+          if gsi[:provisioned_throughput]
+            g[:provisioned_throughput] = only_keys_matching(gsi[:provisioned_throughput], %i[read_capacity_units write_capacity_units])
+          end
+        end
+      end
+      dynamodb.create_table(params)
+    end
+
   end
 
 end
