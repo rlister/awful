@@ -32,6 +32,10 @@ module Awful
         @datapipeline ||= Aws::DataPipeline::Client.new
       end
 
+      def dynamodb
+        @dynamodb ||= Aws::DynamoDB::Client.new
+      end
+
       def symbolize_keys(thing)
         if thing.is_a?(Hash)
           Hash[ thing.map { |k,v| [ k.to_sym, symbolize_keys(v) ] } ]
