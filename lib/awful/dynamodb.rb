@@ -27,6 +27,14 @@ module Awful
       end
     end
 
+    desc 'scan NAME', 'scan table with NAME'
+    def scan(name, start_key = nil)
+      r = dynamodb.scan(table_name: name, exclusive_start_key: start_key) #.items.tap{ |x| p x.count }.tap do |table|
+      puts r.items.map { |item| JSON.generate(item) }.join("\n")
+      if r.last_evaluated_key # recurse if more data to get
+        scan(name, r.last_evaluated_key)
+      end
+    end
   end
 
 end
