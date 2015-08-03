@@ -56,6 +56,7 @@ module Awful
         end
       end
 
+      ## merge options with config from erb-parsed yaml stdin or file
       def load_cfg(options = {}, file = nil)
         Dotenv.overload(options[:env]) if options[:env]
         src = (file and File.read(file)) || ((not $stdin.tty?) and $stdin.read)
@@ -63,6 +64,7 @@ module Awful
         symbolize_keys(cfg).merge(symbolize_keys(options.reject{ |_,v| v.nil? }))
       end
 
+      ## return a copy of hash, but with only listed keys
       def only_keys_matching(hash, keylist)
         hash.select do |key,_|
           keylist.include?(key)
