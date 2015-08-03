@@ -55,6 +55,11 @@ module Awful
       dynamodb.create_table(params)
     end
 
+    desc 'delete NAME', 'delete table with NAME'
+    def delete_table(name)
+      dynamodb.delete_table(table_name: name)
+    end
+
   end
 
 end
