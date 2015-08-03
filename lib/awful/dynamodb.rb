@@ -22,7 +22,7 @@ module Awful
 
     desc 'dump NAME', 'dump table with name'
     def dump(name)
-      dynamodb.describe_table(table_name: name).tap do |table|
+      dynamodb.describe_table(table_name: name).table.tap do |table|
         puts YAML.dump(stringify_keys(table.to_hash))
       end
     end
