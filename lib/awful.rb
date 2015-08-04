@@ -32,8 +32,10 @@ module Awful
         @datapipeline ||= Aws::DataPipeline::Client.new
       end
 
+      ## to use dynamodb-local, set DYNAMO_ENDPOINT or DYNAMODB_ENDPOINT to e.g. http://localhost:8000
       def dynamodb
-        @dynamodb ||= Aws::DynamoDB::Client.new
+        options = { endpoint: ENV['DYNAMO_ENDPOINT'] || ENV['DYNAMODB_ENDPOINT'] }.reject { |_,v| v.nil? }
+        @dynamodb ||= Aws::DynamoDB::Client.new(options)
       end
 
       def s3
