@@ -36,6 +36,10 @@ module Awful
         @dynamodb ||= Aws::DynamoDB::Client.new
       end
 
+      def s3
+        @s3 ||= Aws::S3::Client.new
+      end
+
       def symbolize_keys(thing)
         if thing.is_a?(Hash)
           Hash[ thing.map { |k,v| [ k.to_sym, symbolize_keys(v) ] } ]
