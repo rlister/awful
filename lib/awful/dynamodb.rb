@@ -57,7 +57,13 @@ module Awful
 
     desc 'delete NAME', 'delete table with NAME'
     def delete_table(name)
-      dynamodb.delete_table(table_name: name)
+      confirmation = ask("to delete #{name} and all its data, type the name of table to delete:", :yellow)
+      if confirmation == name
+        say("deleting table #{name}")
+        dynamodb.delete_table(table_name: name)
+      else
+        say("confirmation failed for #{name}", :red)
+      end
     end
 
     desc 'put_items NAME', 'puts json items into the table with NAME'
