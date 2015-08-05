@@ -27,12 +27,16 @@ module Awful
       end
     end
 
+    ## uses simple_json to get Aws::Plugins::Protocols::JsonRpc output from scan;
+    ## this also means request params need to be raw strings and not symbols, etc
     desc 'scan NAME', 'scan table with NAME'
-    def scan(name, start_key = nil)
-      r = dynamodb.scan(table_name: name, exclusive_start_key: start_key) #.items.tap{ |x| p x.count }.tap do |table|
-      puts r.items.map { |item| JSON.generate(item) }.join("\n")
-      if r.last_evaluated_key # recurse if more data to get
-        scan(name, r.last_evaluated_key)
+    def scan(name, exclusive_start_key = nil)
+      r = dynamodb_simple.scan('TableName' => name, 'ExclusiveStartKey' => exclusive_start_key)
+      puts r['Items'].map { |item| JSON.generate(item) }.join("\n")
+
+      ## recurse if more data to get
+      if r.has_key?('LastEvaluatedKey')
+        scan(name, r['LastEvaluatedKey'])
       end
     end
 
