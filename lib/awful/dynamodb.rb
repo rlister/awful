@@ -27,19 +27,6 @@ module Awful
       end
     end
 
-    ## uses simple_json to get Aws::Plugins::Protocols::JsonRpc output from scan;
-    ## this also means request params need to be raw strings and not symbols, etc
-    desc 'scan NAME', 'scan table with NAME'
-    def scan(name, exclusive_start_key = nil)
-      r = dynamodb_simple.scan('TableName' => name, 'ExclusiveStartKey' => exclusive_start_key)
-      puts r['Items'].map { |item| JSON.generate(item) }.join("\n")
-
-      ## recurse if more data to get
-      if r.has_key?('LastEvaluatedKey')
-        scan(name, r['LastEvaluatedKey'])
-      end
-    end
-
     desc 'create_table NAME', 'create table with NAME'
     def create_table(name, file = nil)
       opt = load_cfg(options, file)
@@ -70,12 +57,25 @@ module Awful
       end
     end
 
+    ## uses simple_json to get Aws::Plugins::Protocols::JsonRpc output from scan;
+    ## this also means request params need to be raw strings and not symbols, etc
+    desc 'scan NAME', 'scan table with NAME'
+    def scan(name, exclusive_start_key = nil)
+      r = dynamodb_simple.scan('TableName' => name, 'ExclusiveStartKey' => exclusive_start_key)
+      puts r['Items'].map { |item| JSON.generate(item) }.join("\n")
+
+      ## recurse if more data to get
+      if r.has_key?('LastEvaluatedKey')
+        scan(name, r['LastEvaluatedKey'])
+      end
+    end
+
     desc 'put_items NAME', 'puts json items into the table with NAME'
     def put_items(name, file = nil)
       io = (file and File.open(file)) || ((not $stdin.tty?) and $stdin)
       count = 0
       io.each_line do |line|
-        dynamodb.put_item(table_name: name, item: JSON.parse(line))
+        dynamodb_simple.put_item('TableName' => name, 'Item' => JSON.parse(line))
         count += 1
       end
       count.tap { |c| puts "put #{c} items" }
