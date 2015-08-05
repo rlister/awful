@@ -34,8 +34,21 @@ module Awful
 
       ## to use dynamodb-local, set DYNAMO_ENDPOINT or DYNAMODB_ENDPOINT to e.g. http://localhost:8000
       def dynamodb
-        options = { endpoint: ENV['DYNAMO_ENDPOINT'] || ENV['DYNAMODB_ENDPOINT'] }.reject { |_,v| v.nil? }
+        options = {endpoint: ENV['DYNAMO_ENDPOINT'] || ENV['DYNAMODB_ENDPOINT']}.reject { |_,v| v.nil? }
         @dynamodb ||= Aws::DynamoDB::Client.new(options)
+      end
+
+      ## dynamodb client with parameter conversion turned off,
+      ## for getting result as Aws::Plugins::Protocols::JsonRpc;
+      ## see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DataFormat.html;
+      ## client method calls need simple attributes in requests also (strings not symbols, etc)
+      def dynamodb_simple
+        options = {
+          simple_attributes: false,
+          simple_json: true,
+          endpoint: ENV['DYNAMO_ENDPOINT'] || ENV['DYNAMODB_ENDPOINT'],
+        }.reject { |_,v| v.nil? }
+        @dynamodb_simple ||= Aws::DynamoDB::Client.new(options)
       end
 
       def s3
