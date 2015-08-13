@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awful'
+require 'awful/auto_scaling_notifications'
+
+Awful::AutoScalingNotifications.start(ARGV)
