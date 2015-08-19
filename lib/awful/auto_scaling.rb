@@ -252,34 +252,41 @@ module Awful
       end
     end
 
-    desc 'old_instances NAME', 'Deal with instances that are not on the ASG current launch config'
+    desc 'old_instances ASGS', 'Deal with instances that are not on their ASG current launch config'
     method_option :long,       aliases: '-l', default: false, desc: 'Long listing'
+    method_option :groups,     aliases: '-g', default: false, desc: 'Just list names of ASGs with outdated instances'
     method_option :detach,     aliases: '-D', default: false, desc: 'Detach old instances from this ASG'
     method_option :decrement,  aliases: '-d', default: false, desc: 'should decrement desired capacity when detaching instances from ASG'
     method_option :deregister, aliases: '-E', default: false, desc: 'Deregister old instances from ELB for this ASG'
     method_option :terminate,  aliases: '-t', default: false, desc: 'Terminate old instances'
-    def old_instances(name)
-      asg = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: [name]).map(&:auto_scaling_groups).flatten.first
-      autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
-        instance.auto_scaling_group_name.match(name) and instance.launch_configuration_name != asg.launch_configuration_name
+    def old_instances(*names)
+      asgs = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).map(&:auto_scaling_groups).flatten
+
+      asgs.each_with_object({}) do |asg, hash|
+        outdated = asg.instances.select do |instance|
+          instance.launch_configuration_name != asg.launch_configuration_name
+        end
+        hash[asg.auto_scaling_group_name] = outdated unless outdated.empty?
       end.tap do |olds|
         if olds.empty?
           # noop
         elsif options[:detach]
-          autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
+          autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.values.flatten.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
         elsif options[:deregister]
           asg.load_balancer_names.map do |elb_name|
-            elb.deregister_instances_from_load_balancer(load_balancer_name: elb_name, instances: olds.map { |i| { instance_id: i.instance_id } })
+            elb.deregister_instances_from_load_balancer(load_balancer_name: elb_name, instances: olds.values.flatten.map { |i| { instance_id: i.instance_id } })
           end.tap { puts "Deregistered: #{olds.map(&:instance_id).join(',')}" }
         elsif options[:terminate]
-          olds.map do |instance|
+          olds.values.flatten.map do |instance|
             autoscaling.terminate_instance_in_auto_scaling_group(instance_id: instance.instance_id, should_decrement_desired_capacity: options[:decrement] && true)
             instance.instance_id
           end.tap { |ids| say("Terminated: #{ids.join(',')}", :yellow) }
+        elsif options[:groups]
+          puts olds.keys
         elsif options[:long]
-          print_table olds.map { |i| [ i.instance_id, i.launch_configuration_name ] }
+          print_table olds.map { |asg, ins| ins.map { |i| [i.instance_id, asg, i.launch_configuration_name] }.flatten }
         else
-          puts olds.map(&:instance_id)
+          puts olds.values.flatten.map(&:instance_id)
         end
       end
     end
