@@ -128,15 +128,15 @@ module Awful
     #     })
     #   end
     # end
+
+    desc 'user_data NAME', 'dump EC2 instance user_data'
     def user_data(name)
-      opt = load_cfg(options)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
-        instance.instance_id == name or (n = tag_name(instance) and n.match(name))
+        instance.instance_id == name or tag_name(instance) == name
       end.tap do |instance|
-        ec2.modify_instance_attribute(instance_id: instance.instance_id, user_data: {
-          #value: Base64.strict_encode64(opt[:user_data])
-          value: opt[:user_data]
-        })
+        ec2.describe_instance_attribute(instance_id: instance.instance_id, attribute: 'userData').user_data.value.tap do |user_data|
+          puts Base64.strict_decode64(user_data)
+        end
       end
     end
 
