@@ -180,8 +180,11 @@ module Awful
         ids = ins.first(num.to_i).map(&:instance_id)
         if yes? "Really terminate #{num} instances: #{ids.join(',')}?", :yellow
           ids.each do |id|
+            puts "Terminating instance: #{id}"
             autoscaling.terminate_instance_in_auto_scaling_group(instance_id: id, should_decrement_desired_capacity: options[:decrement] && true)
           end
+        else
+          puts 'Nothing terminated'
         end
       end
     end
