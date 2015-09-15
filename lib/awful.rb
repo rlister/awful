@@ -59,6 +59,10 @@ module Awful
         @s3 ||= Aws::S3::Client.new
       end
 
+      def support
+        @support ||= Aws::Support::Client.new
+      end
+
       def symbolize_keys(thing)
         if thing.is_a?(Hash)
           Hash[ thing.map { |k,v| [ k.to_sym, symbolize_keys(v) ] } ]
