@@ -2,11 +2,31 @@ module Awful
 
   class S3 < Cli
 
-    desc 'list_buckets [PATTERN]', 'list buckets'
+    no_commands do
+
+      ## resource interface to S3 commands
+      def s3_resource
+        Aws::S3::Resource.new(client: s3)
+      end
+
+    end
+
+    desc 'ls PATTERN', 'list buckets or objects'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def list_buckets(name = /./)
+    def ls(name = '.')
+      if name.include?('/')
+        bucket, prefix = name.split('/', 2)
+        invoke 'objects', [bucket, prefix], options
+      else
+        invoke 'buckets', [name], options
+      end
+    end
+
+    desc 'buckets [PATTERN]', 'list buckets'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def buckets(name = /./)
       s3.list_buckets.buckets.select do |bucket|
-        bucket.name.match(name)
+        bucket.name.match(/#{name}/)
       end.tap do |list|
         if options[:long]
           print_table list.map { |b| [ b.name, b.creation_date ] }
@@ -16,12 +36,9 @@ module Awful
       end
     end
 
-    desc 'list_objects BUCKET [PATTERN]', 'list objects in bucket'
-    def list_objects(bucket, prefix = nil)
-      # s3.list_objects(bucket: bucket, prefix: prefix, delimiter: '').contents.map(&:key).tap do |list|
-      #   puts list
-      # end
-      Aws::S3::Resource.new(client: s3).bucket(bucket).objects(delimiter: '', prefix: prefix).map do |object|
+    desc 'objects BUCKET [PATTERN]', 'list objects in bucket'
+    def objects(bucket, prefix = nil)
+      s3_resource.bucket(bucket).objects(prefix: prefix).map do |object|
         object.key
       end.tap { |list| puts list }
     end
