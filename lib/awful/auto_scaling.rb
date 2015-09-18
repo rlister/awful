@@ -265,35 +265,41 @@ module Awful
     def old_instances(*names)
       asgs = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).map(&:auto_scaling_groups).flatten
 
-      asgs.each_with_object({}) do |asg, hash|
+      ## get hash of old instances by ASG name
+      olds = asgs.each_with_object({}) do |asg, hash|
         outdated = asg.instances.select do |instance|
           instance.launch_configuration_name != asg.launch_configuration_name
         end
         hash[asg.auto_scaling_group_name] = outdated unless outdated.empty?
-      end.tap do |olds|
-        if olds.empty?
-          # noop
-        elsif options[:detach]
-          autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.values.flatten.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
-        elsif options[:deregister]
-          asg.load_balancer_names.map do |elb_name|
-            elb.deregister_instances_from_load_balancer(load_balancer_name: elb_name, instances: olds.values.flatten.map { |i| { instance_id: i.instance_id } })
-          end.tap { puts "Deregistered: #{olds.map(&:instance_id).join(',')}" }
-        elsif options[:terminate]
-          olds.values.flatten.map do |instance|
-            autoscaling.terminate_instance_in_auto_scaling_group(instance_id: instance.instance_id, should_decrement_desired_capacity: options[:decrement] && true)
-            instance.instance_id
-          end.tap { |ids| say("Terminated: #{ids.join(',')}", :yellow) }
-        elsif options[:groups]
-          puts olds.keys
-        elsif options[:long]
-          print_table olds.map { |asg, ins| ins.map { |i| [i.instance_id, asg, i.launch_configuration_name] }.flatten }
-        else
-          puts olds.values.flatten.map(&:instance_id)
+      end
+
+      if olds.empty?
+        # noop
+      elsif options[:detach]
+        autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.values.flatten.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
+      elsif options[:deregister]
+        asgs.select do |asg|
+          olds.has_key?(asg.auto_scaling_group_name)
+        end.each do |asg|
+          instance_ids = olds[asg.auto_scaling_group_name].flatten.map(&:instance_id)
+          asg.load_balancer_names.each do |elb_name|
+            say "Deregistering #{instance_ids.join(',')} from ELB #{elb_name}", :yellow
+            elb.deregister_instances_from_load_balancer(load_balancer_name: elb_name, instances: instance_ids.map { |id| {instance_id: id} })
+          end
         end
+      elsif options[:terminate]
+        olds.values.flatten.map do |instance|
+          autoscaling.terminate_instance_in_auto_scaling_group(instance_id: instance.instance_id, should_decrement_desired_capacity: options[:decrement] && true)
+          instance.instance_id
+        end.tap { |ids| say("Terminated: #{ids.join(',')}", :yellow) }
+      elsif options[:groups]
+        puts olds.keys
+      elsif options[:long]
+        print_table olds.map { |asg, ins| ins.map { |i| [i.instance_id, asg, i.launch_configuration_name] }.flatten }
+      else
+        puts olds.values.flatten.map(&:instance_id)
       end
     end
-
   end
 
 end
