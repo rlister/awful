@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awful'
+require 'awful/route53'
+
+Awful::Route53.start(ARGV)
