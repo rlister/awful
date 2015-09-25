@@ -8,8 +8,8 @@ module Awful
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ?
-        ->(i) { [ tag_name(i) || '-', i.instance_id, i.instance_type, i.virtualization_type, i.placement.availability_zone, i.state.name,
-                  i.security_groups.map(&:group_name).join(','), i.private_ip_address, i.public_ip_address ] } :
+        ->(i) { [ (tag_name(i) || '-').slice(0..40), i.instance_id, i.instance_type, i.virtualization_type, i.placement.availability_zone, i.state.name,
+                  i.security_groups.map(&:group_name).join(',').slice(0..30), i.private_ip_address, i.public_ip_address ] } :
         ->(i) { [ tag_name(i) || i.instance_id ] }
 
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.select do |instance|
