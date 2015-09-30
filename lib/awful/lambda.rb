@@ -6,6 +6,21 @@ module Awful
       def lambda
         @lambda ||= Aws::Lambda::Client.new
       end
+
+      ## return zip file contents, make it if necessary
+      def zip_thing(thing)
+        if File.directory?(thing)
+          Dir.chdir(thing) do
+            %x[zip -q -r - .]      # zip dir contents
+          end
+        elsif thing.match(/\.zip$/i)
+          File.read(thing)         # raw zipfile contents
+        elsif File.file?(thing)
+          %x[zip -q -j - #{thing}] # zip a single file
+        else
+          nil
+        end
+      end
     end
 
     desc 'ls NAME', 'list lambda functions matching NAME pattern'
@@ -32,6 +47,17 @@ module Awful
       hash[:code] = function.code.to_hash
       hash.tap do |h|
         puts YAML.dump(stringify_keys(h))
+      end
+    end
+
+    desc 'create', 'create a new lambda function'
+    def create(name = nil)
+      opt = load_cfg
+      opt[:function_name] = name unless name.nil?
+      opt[:code][:zip_file] = zip_thing(opt[:code][:zip_file])
+      whitelist = %i[function_name runtime role handler description timeout memory_size code]
+      lambda.create_function(only_keys_matching(opt, whitelist)).tap do |response|
+        puts YAML.dump(stringify_keys(response.to_hash))
       end
     end
   end
