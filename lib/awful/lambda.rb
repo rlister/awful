@@ -42,11 +42,8 @@ module Awful
 
     desc 'dump NAME', 'get configuration of lambda function NAME'
     def dump(name)
-      function = lambda.get_function(function_name: name)
-      hash = function.configuration.to_hash
-      hash[:code] = function.code.to_hash
-      hash.tap do |h|
-        puts YAML.dump(stringify_keys(h))
+      lambda.get_function_configuration(function_name: name).tap do |h|
+        puts YAML.dump(stringify_keys(h.to_hash))
       end
     end
 
