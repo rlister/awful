@@ -54,13 +54,26 @@ module Awful
       end
     end
 
-    desc 'update [NAME]', 'update lambda function config'
+    desc 'update [NAME]', 'update lambda function config [and code]'
+    method_option :zip_file, aliases: '-z', default: false, desc: 'Update code zip file (creates if necessary)'
     def update(name = nil)
       opt = load_cfg
       opt[:function_name] = name unless name.nil?
+
+      ## update configuration
       whitelist = %i[function_name role handler description timeout memory_size]
-      lambda.update_function_configuration(only_keys_matching(opt, whitelist)).tap do |response|
-        puts YAML.dump(stringify_keys(response.to_hash))
+      response = lambda.update_function_configuration(only_keys_matching(opt, whitelist)).to_hash
+
+      ## update code
+      opt[:code] = {zip_file: zip_thing(options[:zip_file])} if options[:zip_file]
+      unless opt.fetch(:code, {}).empty?
+        r = lambda.update_function_code(opt[:code].merge({function_name: opt[:function_name]}))
+        response = response.merge(r.to_hash)
+      end
+
+      ## return combined response
+      response.tap do |resp|
+        puts YAML.dump(stringify_keys(resp))
       end
     end
 
