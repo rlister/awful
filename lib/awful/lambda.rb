@@ -54,6 +54,16 @@ module Awful
       end
     end
 
+    desc 'update [NAME]', 'update lambda function config'
+    def update(name = nil)
+      opt = load_cfg
+      opt[:function_name] = name unless name.nil?
+      whitelist = %i[function_name role handler description timeout memory_size]
+      lambda.update_function_configuration(only_keys_matching(opt, whitelist)).tap do |response|
+        puts YAML.dump(stringify_keys(response.to_hash))
+      end
+    end
+
     desc 'dump NAME', 'get configuration of lambda function NAME'
     def dump(name)
       lambda.get_function_configuration(function_name: name).tap do |h|
