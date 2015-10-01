@@ -1,3 +1,6 @@
+require 'open-uri'
+require 'tempfile'
+
 module Awful
 
   class Lambda < Cli
@@ -40,13 +43,6 @@ module Awful
       end
     end
 
-    desc 'dump NAME', 'get configuration of lambda function NAME'
-    def dump(name)
-      lambda.get_function_configuration(function_name: name).tap do |h|
-        puts YAML.dump(stringify_keys(h.to_hash))
-      end
-    end
-
     desc 'create', 'create a new lambda function'
     def create(name = nil)
       opt = load_cfg
@@ -57,6 +53,31 @@ module Awful
         puts YAML.dump(stringify_keys(response.to_hash))
       end
     end
+
+    desc 'dump NAME', 'get configuration of lambda function NAME'
+    def dump(name)
+      lambda.get_function_configuration(function_name: name).tap do |h|
+        puts YAML.dump(stringify_keys(h.to_hash))
+      end
+    end
+
+    desc 'code NAME', 'get code for lambda function NAME'
+    method_option :url, aliases: '-u', default: false, desc: 'Return just URL instead of downloading code'
+    def code(name)
+      url = lambda.get_function(function_name: name).code.location
+      if options[:url]
+        url
+      else
+        zipdata = open(url).read
+        file = Tempfile.open(['awful', '.zip'])
+        file.write(zipdata)
+        file.close
+        %x[unzip -p #{file.path}] # unzip all contents to stdout
+      end.tap do |output|
+        puts output
+      end
+    end
+
   end
 
 end
