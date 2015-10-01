@@ -101,6 +101,15 @@ module Awful
       end
     end
 
+    desc 'delete NAME', 'delete lambda function NAME'
+    def delete(name)
+      if yes? "Really delete lambda function #{name}?", :yellow
+        lambda.delete_function(function_name: name).tap do
+          puts "deleted #{name}"
+        end
+      end
+    end
+
   end
 
 end
