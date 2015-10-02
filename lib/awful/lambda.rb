@@ -65,9 +65,11 @@ module Awful
       response = lambda.update_function_configuration(only_keys_matching(opt, whitelist)).to_hash
 
       ## update code
-      opt[:code] = {zip_file: zip_thing(options[:zip_file])} if options[:zip_file]
+      opt[:code] = {zip_file: options[:zip_file]} if options[:zip_file]
       unless opt.fetch(:code, {}).empty?
-        r = lambda.update_function_code(opt[:code].merge({function_name: opt[:function_name]}))
+        code = opt[:code].merge({function_name: opt[:function_name]})
+        code[:zip_file] = zip_thing(code[:zip_file]) if code[:zip_file]
+        r = lambda.update_function_code(code)
         response = response.merge(r.to_hash)
       end
 
