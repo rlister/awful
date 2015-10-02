@@ -110,6 +110,25 @@ module Awful
       end
     end
 
+    desc 'events NAME', 'list event source mappings for lambda function NAME'
+    method_option :long,   aliases: '-l', default: false, desc: 'Long listing'
+    method_option :create, aliases: '-c', default: nil,   desc: 'Create event source mapping with given ARN'
+    def events(name)
+      if options[:create]
+        lambda.create_event_source_mapping(function_name: name, event_source_arn: options[:create], starting_position: 'LATEST').tap do |response|
+          puts YAML.dump(stringify_keys(response.to_hash))
+        end
+      else # list
+        lambda.list_event_source_mappings(function_name: name).event_source_mappings.tap do |sources|
+          if options[:long]
+            print_table sources.map { |s| [s.event_source_arn, s.state, "Batch size: #{s.batch_size}, Last result: #{s.last_processing_result}", s.last_modified] }
+          else
+            puts sources.map(&:event_source_arn)
+          end
+        end
+      end
+    end
+
   end
 
 end
