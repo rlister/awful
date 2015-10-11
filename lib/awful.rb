@@ -83,6 +83,11 @@ module Awful
         end
       end
 
+      ## returns contents of named file, or stdin if file = nil
+      def file_or_stdin(file)
+        (file and File.read(file)) || ((not $stdin.tty?) and $stdin.read)
+      end
+
       ## merge options with config from erb-parsed yaml stdin or file
       def load_cfg(options = {}, file = nil)
         Dotenv.overload(options[:env]) if options[:env]
