@@ -46,5 +46,17 @@ module Awful
       end
     end
 
+    desc 'validate FILE', 'validate given template in FILE or stdin'
+    def validate(file = nil)
+      src = (file and File.read(file)) || ((not $stdin.tty?) and $stdin.read)
+      begin
+        cf.validate_template(template_body: src).tap do |response|
+          puts YAML.dump(stringify_keys(response.to_hash))
+        end
+      rescue Aws::CloudFormation::Errors::ValidationError => e
+        e.tap { |err| puts err.message }
+      end
+    end
+
   end
 end
