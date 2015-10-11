@@ -30,5 +30,14 @@ module Awful
       end
     end
 
+    desc 'dump NAME', 'describe stack named NAME'
+    def dump(name)
+      cf.describe_stacks(stack_name: name).stacks.tap do |stacks|
+        stacks.each do |stack|
+          puts YAML.dump(stringify_keys(stack.to_hash))
+        end
+      end
+    end
+
   end
 end
