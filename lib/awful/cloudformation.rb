@@ -75,6 +75,11 @@ module Awful
       end
     end
 
+    desc 'delete NAME', 'deletes stack with name NAME'
+    def delete(name)
+      cf.delete_stack(stack_name: name)
+    end
+
     desc 'events NAME', 'show events for stack with name NAME'
     def events(name)
       cf.describe_stack_events(stack_name: name).stack_events.tap do |events|
