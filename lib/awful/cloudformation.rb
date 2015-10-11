@@ -68,5 +68,12 @@ module Awful
       end
     end
 
+    desc 'events NAME', 'show events for stack with name NAME'
+    def events(name)
+      cf.describe_stack_events(stack_name: name).stack_events.tap do |events|
+        print_table events.map { |e| [e.timestamp, e.resource_status, e.resource_type, e.logical_resource_id, e.resource_status_reason] }
+      end
+    end
+
   end
 end
