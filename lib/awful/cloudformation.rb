@@ -57,11 +57,18 @@ module Awful
       end
     end
 
+    desc 'create NAME', 'create stack with name NAME'
+    def create(name, file = nil)
+      cf.create_stack(stack_name: name, template_body: file_or_stdin(file)).tap do |response|
+        puts response.stack_id
+      end
+    end
+
     desc 'update NAME', 'update stack with name NAME'
     def update(name, file = nil)
       begin
         cf.update_stack(stack_name: name, template_body: file_or_stdin(file)).tap do |response|
-          p response.stack_id
+          puts response.stack_id
         end
       rescue Aws::CloudFormation::Errors::ValidationError => e
         e.tap { |err| puts err.message }
