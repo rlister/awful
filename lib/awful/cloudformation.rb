@@ -39,5 +39,12 @@ module Awful
       end
     end
 
+    desc 'template NAME', 'get template for stack named NAME'
+    def template(name)
+      cf.get_template(stack_name: name).template_body.tap do |template|
+        puts template
+      end
+    end
+
   end
 end
