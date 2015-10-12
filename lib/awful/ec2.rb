@@ -84,6 +84,18 @@ module Awful
       end
     end
 
+    desc 'az', 'list availability zones'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def az
+      ec2.describe_availability_zones.availability_zones.tap do |zones|
+        if options[:long]
+          print_table zones.map { |z| [z.zone_name, z.state, z.messages.join(',')] }
+        else
+          puts zones.map(&:zone_name)
+        end
+      end
+    end
+
     desc 'allocate', 'allocate a new elastic IP address'
     def allocate
       ec2.allocate_address(domain: 'vpc').first.tap do |eip|
