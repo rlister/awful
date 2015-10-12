@@ -87,5 +87,11 @@ module Awful
       end
     end
 
+    desc 'limits', 'describe cloudformation account limits'
+    def limits
+      cf.describe_account_limits.account_limits.tap do |limits|
+        print_table limits.map { |l| [l.name, l.value] }
+      end
+    end
   end
 end
