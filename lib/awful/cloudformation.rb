@@ -77,7 +77,9 @@ module Awful
 
     desc 'delete NAME', 'deletes stack with name NAME'
     def delete(name)
-      cf.delete_stack(stack_name: name)
+      if yes? "Really delete stack #{name}?", :yellow
+        cf.delete_stack(stack_name: name)
+      end
     end
 
     desc 'events NAME', 'show events for stack with name NAME'
