@@ -6,7 +6,7 @@ module Awful
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ?
-        ->(s) { [s.tags.map{ |t| t.value }.join(','), s.subnet_id, s.state, s.cidr_block, s.available_ip_address_count, s.availability_zone] } :
+        ->(s) { [(tag_name(s) || '-'), s.subnet_id, s.state, s.cidr_block, s.available_ip_address_count, s.availability_zone] } :
         ->(s) { [s.subnet_id] }
       ec2.describe_subnets.map(&:subnets).flatten.select do |subnet|
         subnet.tags.any? { |tag| tag.value.match(name) }
