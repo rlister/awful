@@ -101,6 +101,21 @@ module Awful
       end
     end
 
+    desc 'id NAME RESOURCE', 'get physical_resource_id from a logical_resource_id RESOURCE for stack with NAME'
+    method_option :all, aliases: '-a', default: false, desc: 'Return all details about resource as YAML'
+    def id(name, resource)
+      detail = cf.describe_stack_resource(stack_name: name, logical_resource_id: resource).stack_resource_detail
+      if options[:all]
+        detail.tap do |d|
+          puts YAML.dump(stringify_keys(d.to_hash))
+        end
+      else
+        detail.physical_resource_id.tap do |id|
+          puts id
+        end
+      end
+    end
+
     desc 'limits', 'describe cloudformation account limits'
     def limits
       cf.describe_account_limits.account_limits.tap do |limits|
