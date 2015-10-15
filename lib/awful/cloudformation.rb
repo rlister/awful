@@ -2,9 +2,29 @@ module Awful
 
   class CloudFormation < Cli
 
+    COLORS = {
+      create_in_progress:                  :yellow,
+      delete_in_progress:                  :yellow,
+      update_in_progress:                  :yellow,
+      update_complete_cleanup_in_progress: :yellow,
+      create_failed:                       :red,
+      delete_failed:                       :red,
+      update_failed:                       :red,
+      create_complete:                     :green,
+      delete_complete:                     :green,
+      update_complete:                     :green,
+      delete_skipped:                      :yellow,
+      rollback_in_progress:                :red,
+      rollback_complete:                   :red,
+    }
+
     no_commands do
       def cf
         @cf ||= Aws::CloudFormation::Client.new
+      end
+
+      def color(string)
+        set_color(string, COLORS.fetch(string.downcase.to_sym, :blue))
       end
     end
 
@@ -23,7 +43,7 @@ module Awful
 
       stacks.tap do |stacks|
         if options[:long]
-          print_table stacks.map { |s| [s.stack_name, s.creation_time, s.stack_status, s.template_description] }
+          print_table stacks.map { |s| [s.stack_name, s.creation_time, color(s.stack_status), s.template_description] }
         else
           puts stacks.map(&:stack_name)
         end
@@ -85,7 +105,7 @@ module Awful
     desc 'events NAME', 'show events for stack with name NAME'
     def events(name)
       cf.describe_stack_events(stack_name: name).stack_events.tap do |events|
-        print_table events.map { |e| [e.timestamp, e.resource_status, e.resource_type, e.logical_resource_id, e.resource_status_reason] }
+        print_table events.map { |e| [e.timestamp, color(e.resource_status), e.resource_type, e.logical_resource_id, e.resource_status_reason] }
       end
     end
 

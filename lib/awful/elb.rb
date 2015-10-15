@@ -2,6 +2,17 @@ module Awful
 
   class Elb < Cli
 
+    COLORS = {
+      InService:    :green,
+      OutOfService: :red,
+    }
+
+    no_commands do
+      def color(string)
+        set_color(string, COLORS.fetch(string.to_sym, :yellow))
+      end
+    end
+
     desc 'ls [PATTERN]', 'list vpcs [with any tags matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
@@ -30,7 +41,7 @@ module Awful
           ec2.describe_instances(instance_ids: instances_by_id.keys).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
             health = instances_by_id[instance.instance_id]
             instance_name = tag_name(instance) || '-'
-            [ instance.instance_id, instance_name, instance.public_ip_address, health.state, health.reason_code, health.description ]
+            [ instance.instance_id, instance_name, instance.public_ip_address, color(health.state), health.reason_code, health.description ]
           end.tap { |list| print_table list }
         else
           instances_by_id.keys.tap { |list| puts list }

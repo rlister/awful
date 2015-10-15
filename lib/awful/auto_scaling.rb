@@ -2,6 +2,20 @@ module Awful
 
   class AutoScaling < Cli
 
+    COLORS = {
+      Pending:     :yellow,
+      InService:   :green,
+      Terminating: :red,
+      HEALTHY:     :green,
+      UNHEALTHY:   :red,
+    }
+
+    no_commands do
+      def color(string)
+        set_color(string, COLORS.fetch(string.to_sym, :yellow))
+      end
+    end
+
     desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
@@ -38,20 +52,19 @@ module Awful
     method_option :long,                 aliases: '-l', default: false, desc: 'Long listing'
     method_option :launch_configuration, aliases: '-L', default: false, desc: 'Get instance launch_configs'
     def instances(name)
-      fields = if options[:long]
-                 %i[ instance_id auto_scaling_group_name availability_zone lifecycle_state health_status launch_configuration_name ]
-               elsif options[:launch_configuration]
-                 %i[ instance_id launch_configuration_name ]
-               else
-                 %i[ instance_id ]
-               end
-
       autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
         instance.auto_scaling_group_name.match(name)
       end.tap do |instances|
-        instances.map do |instance|
-          fields.map { |field| instance.send(field) }
-        end.tap { |list| print_table list }
+        if options[:long]
+          print_table instances.map { |i|
+            [i.instance_id, i.auto_scaling_group_name, i.availability_zone, color(i.lifecycle_state),
+             color(i.health_status), i.launch_configuration_name]
+          }
+        elsif options[:launch_configuration]
+          print_table instances.map { |i| [i.instance_id, i.launch_configuration_name] }
+        else
+          puts instances.map(&:instance_id)
+        end
       end
     end
 
