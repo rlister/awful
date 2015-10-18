@@ -3,11 +3,17 @@ module Awful
   class AutoScaling < Cli
 
     COLORS = {
+      ## lifecycle states
       Pending:     :yellow,
       InService:   :green,
       Terminating: :red,
+      ## health statuses
       HEALTHY:     :green,
       UNHEALTHY:   :red,
+      ## activity status
+      Successful:   :green,
+      Failed:      :red,
+      Cancelled:   :red,
     }
 
     no_commands do
@@ -311,6 +317,21 @@ module Awful
         print_table olds.map { |asg, ins| ins.map { |i| [i.instance_id, asg, i.launch_configuration_name] }.flatten }
       else
         puts olds.values.flatten.map(&:instance_id)
+      end
+    end
+
+    desc 'activities ASG', 'describe recent scaling activities for group ASG'
+    method_option :long,  aliases: '-l', default: false, desc: 'Long listing'
+    method_option :cause, aliases: '-c', default: false, desc: 'Long listing with cause of activity'
+    def activities(name)
+      autoscaling.describe_scaling_activities(auto_scaling_group_name: name).activities.tap do |activities|
+        if options[:long]
+          print_table activities.map { |a| [color(a.status_code), a.description, a.start_time, a.end_time] }
+        elsif options[:cause]
+          print_table activities.map { |a| [color(a.status_code), a.description, a.start_time, a.end_time, "\n#{a.cause}\n\n"] }
+        else
+          puts activities.map(&:activity_id)
+        end
       end
     end
   end
