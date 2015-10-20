@@ -114,7 +114,7 @@ module Awful
     def resources(name)
       cf.list_stack_resources(stack_name: name).stack_resource_summaries.tap do |resources|
         if options[:long]
-          print_table resources.map { |r| [r.logical_resource_id, r.physical_resource_id, r.resource_type, r.resource_status, r.resource_status_reason] }
+          print_table resources.map { |r| [r.logical_resource_id, r.physical_resource_id, r.resource_type, color(r.resource_status), r.resource_status_reason] }
         else
           puts resources.map(&:logical_resource_id)
         end
