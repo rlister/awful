@@ -51,6 +51,12 @@ module Awful
       end
     end
 
+    desc 'upload FILE BUCKET/OBJECT', 'upload FILE to given object'
+    def upload(file, s3path)
+      bucket, key = s3path.split('/', 2)
+      s3_resource.bucket(bucket).object(key).upload_file(file)
+    end
+
   end
 
 end
