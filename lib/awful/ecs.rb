@@ -42,5 +42,26 @@ module Awful
         end
       end
     end
+
+    desc 'instances CLUSTER', 'list instances for CLUSTER'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def instances(cluster)
+      arns = ecs.list_container_instances(cluster: cluster).container_instance_arns
+      if options[:long]
+        container_instances = ecs.describe_container_instances(cluster: cluster, container_instances: arns).container_instances
+        ec2_instances = ec2.describe_instances(instance_ids: container_instances.map(&:ec2_instance_id)).map(&:reservations).flatten.map(&:instances).flatten
+        print_table container_instances.each_with_index.map { |ins, i|
+          [
+            tag_name(ec2_instances[i]),
+            ins.container_instance_arn.split('/').last,
+            ins.ec2_instance_id,
+            "agent:#{ins.agent_connected}",
+            color(ins.status),
+          ]
+        }
+      else
+        puts arns
+      end
+    end
   end
 end
