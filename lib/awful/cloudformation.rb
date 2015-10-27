@@ -111,8 +111,11 @@ module Awful
 
     desc 'resources NAME', 'list resources for stack with name NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :type, aliases: '-t', default: '.',   desc: 'Filter by regex matching type of resource'
     def resources(name)
-      cf.list_stack_resources(stack_name: name).stack_resource_summaries.tap do |resources|
+      cf.list_stack_resources(stack_name: name).stack_resource_summaries.select do |resource|
+        resource.resource_type.match(/#{options[:type]}/i)
+      end.tap do |resources|
         if options[:long]
           print_table resources.map { |r| [r.logical_resource_id, r.physical_resource_id, r.resource_type, color(r.resource_status), r.resource_status_reason] }
         else
