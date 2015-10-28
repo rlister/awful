@@ -40,7 +40,7 @@ module Awful
                end
 
       autoscaling.describe_auto_scaling_groups.map(&:auto_scaling_groups).flatten.select do |asg|
-        asg.auto_scaling_group_name.match(name)
+        asg.auto_scaling_group_name.match(name) or tag_name(asg, '').match(name)
       end.map do |asg|
         fields.call(asg)
       end.tap do |list|
