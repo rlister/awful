@@ -6,7 +6,7 @@ module Awful
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ?
-        ->(s) { [tag_name(s), s.group_id, s.group_name, s.vpc_id, s.description] } :
+        ->(s) { [tag_name(s), s.group_id, s.group_name[0..50], s.vpc_id, s.description] } :
         ->(s) { [s.group_name] }
 
       ec2.describe_security_groups.map(&:security_groups).flatten.select do |sg|
