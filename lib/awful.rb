@@ -109,9 +109,9 @@ module Awful
         end
       end
 
-      def tag_name(thing)
+      def tag_name(thing, default = nil)
         tn = thing.tags.find { |tag| tag.key == 'Name' }
-        tn && tn.value
+        tn ? tn.value : default
       end
 
       ## return id for instance by name
