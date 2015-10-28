@@ -14,37 +14,43 @@ module Awful
       Successful:   :green,
       Failed:      :red,
       Cancelled:   :red,
+      ## instance state
+      running:    :green,
+      stopped:    :yellow,
+      terminated: :red,
     }
 
     no_commands do
       def color(string)
         set_color(string, COLORS.fetch(string.to_sym, :yellow))
       end
+
+      def all_matching_asgs(name)
+        autoscaling.describe_auto_scaling_groups.map(&:auto_scaling_groups).flatten.select do |asg|
+          asg.auto_scaling_group_name.match(name) or tag_name(asg, '').match(name)
+        end
+      end
     end
 
     desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
-      fields = if options[:long]
-                 ->(a) { [
-                           tag_name(a, '-')[0,40],
-                           a.auto_scaling_group_name[0,40],
-                           a.launch_configuration_name[0,40],
-                           "#{a.instances.length}/#{a.desired_capacity}",
-                           "#{a.min_size}-#{a.max_size}",
-                           a.availability_zones.map{ |az| az[-1,1] }.sort.join(','),
-                           a.created_time
-                         ] }
-               else
-                 ->(a) { [ a.auto_scaling_group_name ] }
-               end
-
-      autoscaling.describe_auto_scaling_groups.map(&:auto_scaling_groups).flatten.select do |asg|
-        asg.auto_scaling_group_name.match(name) or tag_name(asg, '').match(name)
-      end.map do |asg|
-        fields.call(asg)
-      end.tap do |list|
-        print_table list
+      all_matching_asgs(name).tap do |asgs|
+        if options[:long]
+          print_table asgs.map { |a|
+            [
+              tag_name(a, '-')[0,40],
+              a.auto_scaling_group_name[0,40],
+              a.launch_configuration_name[0,40],
+              "#{a.instances.length}/#{a.desired_capacity}",
+              "#{a.min_size}-#{a.max_size}",
+              a.availability_zones.map{ |az| az[-1,1] }.sort.join(','),
+              a.created_time
+            ]
+          }
+        else
+          puts asgs.map(&:auto_scaling_group_name)
+        end
       end
     end
 
@@ -59,16 +65,17 @@ module Awful
     method_option :long,                 aliases: '-l', default: false, desc: 'Long listing'
     method_option :launch_configuration, aliases: '-L', default: false, desc: 'Get instance launch_configs'
     def instances(name)
-      autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
-        instance.auto_scaling_group_name.match(name)
-      end.tap do |instances|
+      all_matching_asgs(name).map(&:instances).flatten.tap do |instances|
         if options[:long]
           print_table instances.map { |i|
-            [i.instance_id, i.auto_scaling_group_name, i.availability_zone, color(i.lifecycle_state),
-             color(i.health_status), i.launch_configuration_name]
+            [
+              i.instance_id,
+              i.availability_zone,
+              color(i.lifecycle_state),
+              color(i.health_status),
+              i.launch_configuration_name,
+            ]
           }
-        elsif options[:launch_configuration]
-          print_table instances.map { |i| [i.instance_id, i.launch_configuration_name] }
         else
           puts instances.map(&:instance_id)
         end
@@ -78,20 +85,20 @@ module Awful
     desc 'ips NAME', 'list IPs for instances in groups matching NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ips(name)
-      fields = options[:long] ?
-        ->(i) { [ i.public_ip_address, i.private_ip_address, i.instance_id, i.image_id, i.instance_type, i.placement.availability_zone, i.state.name, i.launch_time ] } :
-        ->(i) { [ i.public_ip_address ] }
+      ## get instance IDs for matching ASGs
+      ids = all_matching_asgs(name).map(&:instances).flatten.map(&:instance_id)
 
-      instance_ids = autoscaling.describe_auto_scaling_instances.map(&:auto_scaling_instances).flatten.select do |instance|
-        instance.auto_scaling_group_name.match(name)
-      end.map(&:instance_id)
-
-      ec2 = Aws::EC2::Client.new
-      ec2.describe_instances(instance_ids: instance_ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).map do |instance|
-        fields.call(instance)
-      end.tap do |list|
-        print_table list
+      ## get instance details for these IDs
+      ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).tap do |instances|
+        if options[:long]
+          print_table instances.map { |i|
+            [ i.public_ip_address, i.private_ip_address, i.instance_id, i.image_id, i.instance_type, i.placement.availability_zone, color(i.state.name), i.launch_time ]
+          }
+        else
+          puts instances.map(&:public_ip_address)
+        end
       end
+
     end
 
     desc 'ssh NAME [ARGS]', 'ssh to an instance for this autoscaling group'
@@ -99,7 +106,7 @@ module Awful
     method_option :number,     aliases: '-n', default: 1,     desc: 'number of instances to ssh'
     method_option :login_name, aliases: '-l', default: nil,   desc: 'login name to pass to ssh'
     def ssh(name, *args)
-      ips = ips(name).flatten
+      ips = ips(name).map(&:public_ip_address)
       num = options[:all] ? ips.count : options[:number].to_i
       login_name = options[:login_name] ? "-l #{options[:login_name]}" : ''
       ips.last(num).each do |ip|
@@ -109,8 +116,10 @@ module Awful
 
     desc 'dump NAME', 'dump existing autoscaling group as yaml'
     def dump(name)
-      autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: Array(name)).map(&:auto_scaling_groups).flatten.first.to_hash.tap do |asg|
-        puts YAML.dump(stringify_keys(asg)) unless options[:quiet]
+      all_matching_asgs(name).map(&:to_hash).tap do |asgs|
+        asgs.each do |asg|
+          puts YAML.dump(stringify_keys(asg)) unless options[:quiet]
+        end
       end
     end
 
