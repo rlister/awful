@@ -27,11 +27,12 @@ module Awful
     def ls(name = /./)
       fields = if options[:long]
                  ->(a) { [
-                           a.auto_scaling_group_name,
-                           a.launch_configuration_name,
+                           tag_name(a, '-')[0,40],
+                           a.auto_scaling_group_name[0,40],
+                           a.launch_configuration_name[0,40],
                            "#{a.instances.length}/#{a.desired_capacity}",
                            "#{a.min_size}-#{a.max_size}",
-                           a.availability_zones.sort.join(','),
+                           a.availability_zones.map{ |az| az[-1,1] }.sort.join(','),
                            a.created_time
                          ] }
                else
