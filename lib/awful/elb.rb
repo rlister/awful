@@ -11,21 +11,26 @@ module Awful
       def color(string)
         set_color(string, COLORS.fetch(string.to_sym, :yellow))
       end
+
+      ## cannot search ELBs by tag, so just name here
+      def all_matching_elbs(name)
+        elb.describe_load_balancers.map(&:load_balancer_descriptions).flatten.select do |elb|
+          elb.load_balancer_name.match(name)
+        end
+      end
     end
 
-    desc 'ls [PATTERN]', 'list vpcs [with any tags matching PATTERN]'
+    desc 'ls [NAME]', 'list load-balancers matching NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
-      fields = options[:long] ?
-        ->(e) { [e.load_balancer_name, e.instances.length, e.availability_zones.join(','), e.dns_name] } :
-        ->(e) { [e.load_balancer_name] }
-
-      elb.describe_load_balancers.map(&:load_balancer_descriptions).flatten.select do |elb|
-        elb.load_balancer_name.match(name)
-      end.map do |elb|
-        fields.call(elb)
-      end.tap do |list|
-        print_table list
+      all_matching_elbs(name).tap do |elbs|
+        if options[:long]
+          print_table elbs.map { |e|
+            [e.load_balancer_name, e.instances.length, e.availability_zones.join(','), e.dns_name]
+          }
+        else
+          puts elbs.map(&:load_balancer_name)
+        end
       end
     end
 
@@ -51,16 +56,17 @@ module Awful
 
     desc 'dump NAME', 'dump VPC with id or tag NAME as yaml'
     def dump(name)
-      lb = elb.describe_load_balancers(load_balancer_names: Array(name)).map(&:load_balancer_descriptions).flatten.first.to_hash
-      puts YAML.dump(stringify_keys(lb))
+      all_matching_elbs(name).map(&:to_hash).tap do |elbs|
+        elbs.each do |elb|
+          puts YAML.dump(stringify_keys(elb))
+        end
+      end
     end
 
-    desc 'dns NAME', 'get DNS name for load-balancers matching NAME'
+    desc 'dns NAME', 'get DNS names for load-balancers matching NAME'
     def dns(name)
-      elb.describe_load_balancers.map(&:load_balancer_descriptions).flatten.select do |elb|
-        elb.load_balancer_name.match(name)
-      end.map(&:dns_name).tap do |dns|
-        puts dns
+      all_matching_elbs(name).map(&:dns_name).tap do |dns_names|
+        puts dns_names
       end
     end
 
