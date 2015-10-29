@@ -8,8 +8,8 @@ module Awful
       InService:   :green,
       Terminating: :red,
       ## health statuses
-      HEALTHY:     :green,
-      UNHEALTHY:   :red,
+      Healthy:     :green,
+      Unhealthy:   :red,
       ## activity status
       Successful:   :green,
       Failed:      :red,
