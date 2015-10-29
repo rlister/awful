@@ -113,7 +113,13 @@ module Awful
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     method_option :type, aliases: '-t', default: '.',   desc: 'Filter by regex matching type of resource'
     def resources(name)
-      cf.list_stack_resources(stack_name: name).stack_resource_summaries.select do |resource|
+      ## first stack matching name
+      stack = cf.list_stacks.stack_summaries.select do |stack|
+        stack.stack_name.match(name)
+      end.first
+
+      ## get resource from stack
+      cf.list_stack_resources(stack_name: stack.stack_name).stack_resource_summaries.select do |resource|
         resource.resource_type.match(/#{options[:type]}/i)
       end.tap do |resources|
         if options[:long]
