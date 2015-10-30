@@ -2,6 +2,19 @@ module Awful
 
   class DynamoDB < Cli
 
+    COLORS = {
+      CREATING: :yellow,
+      UPDATING: :yellow,
+      DELETING: :red,
+      ACTIVE:   :green,
+    }
+
+    no_commands do
+      def color(string)
+        set_color(string, COLORS.fetch(string.to_sym, :yellow))
+      end
+    end
+
     desc 'ls [PATTERN]', 'list dynamodb tables [matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
@@ -13,7 +26,7 @@ module Awful
         tables.map do |table|
           dynamodb.describe_table(table_name: table).table
         end.tap do |list|
-          print_table list.map { |t| [ t.table_name, t.table_status, t.item_count, t.table_size_bytes, t.creation_date_time ] }
+          print_table list.map { |t| [ t.table_name, color(t.table_status), t.item_count, t.table_size_bytes, t.creation_date_time ] }
         end
       else
         tables.tap { |t| puts t }
