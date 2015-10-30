@@ -37,7 +37,10 @@ module Awful
     desc 'instances NAME', 'list instances and states for elb NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def instances(name)
-      instances = elb.describe_instance_health(load_balancer_name: name).map(&:instance_states).flatten
+      instances = all_matching_elbs(name).map do |e|
+        elb.describe_instance_health(load_balancer_name: e.load_balancer_name).map(&:instance_states)
+      end.flatten
+
       if instances.empty?
         instances.tap { puts 'no instances' }
       else
