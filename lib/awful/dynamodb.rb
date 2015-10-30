@@ -13,14 +13,19 @@ module Awful
       def color(string)
         set_color(string, COLORS.fetch(string.to_sym, :yellow))
       end
+
+      ## return array of tables names matching name
+      def all_matching_tables(name)
+        dynamodb.list_tables.table_names.select do |table|
+          table.match(name)
+        end
+      end
     end
 
     desc 'ls [PATTERN]', 'list dynamodb tables [matching PATTERN]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
-      tables = dynamodb.list_tables.table_names.select do |table|
-        table.match(name)
-      end
+      tables = all_matching_tables(name)
 
       if options[:long]
         tables.map do |table|
@@ -35,8 +40,10 @@ module Awful
 
     desc 'dump NAME', 'dump table with name'
     def dump(name)
-      dynamodb.describe_table(table_name: name).table.tap do |table|
-        puts YAML.dump(stringify_keys(table.to_hash))
+      all_matching_tables(name).map do |table_name|
+        dynamodb.describe_table(table_name: table_name).table.to_hash.tap do |table|
+          puts YAML.dump(stringify_keys(table))
+        end
       end
     end
 
