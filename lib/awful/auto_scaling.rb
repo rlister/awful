@@ -151,21 +151,24 @@ module Awful
     def update(name, file = nil)
       opt = load_cfg(options, file)
 
-      whitelist = %i[auto_scaling_group_name launch_configuration_name min_size max_size desired_capacity default_cooldown availability_zones
-                     health_check_type health_check_grace_period placement_group vpc_zone_identifier termination_policies ]
+      ## allow matching by group name or name tag, but ensure we get only one
+      asgs = all_matching_asgs(name)
+      if asgs.length < 1
+        warn "no match for #{name}"
+        return
+      elsif asgs.length > 1
+        warn "ambiguous match for #{name}:", asgs.map(&:auto_scaling_group_name)
+        return
+      end
 
       ## cleanup the group options
-      opt[:auto_scaling_group_name] = name
+      opt[:auto_scaling_group_name] = asgs.first.auto_scaling_group_name
       opt = remove_empty_strings(opt)
 
       ## update the group
+      whitelist = %i[auto_scaling_group_name launch_configuration_name min_size max_size desired_capacity default_cooldown availability_zones
+                     health_check_type health_check_grace_period placement_group vpc_zone_identifier termination_policies ]
       autoscaling.update_auto_scaling_group(only_keys_matching(opt, whitelist))
-
-      # ## update load_balancers if given
-      # ## TODO: maybe delete instead if empty?
-      # if opt[:load_balancer_names]
-      #   autoscaling.attach_load_balancers(auto_scaling_group_name: name, load_balancer_names: opt[:load_balancer_names])
-      # end
 
       ## update any tags
       if opt[:tags]
