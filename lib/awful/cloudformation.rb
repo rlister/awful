@@ -145,11 +145,22 @@ module Awful
       end
     end
 
+    desc 'policy NAME [JSON]', 'get policy for stack NAME, or set from JSON file or stdin'
+    def policy(name, file = nil)
+      policy = file_or_stdin(file)
+      if policy
+        cf.set_stack_policy(stack_name: name, stack_policy_body: policy)
+      else
+        cf.get_stack_policy(stack_name: name).stack_policy_body.tap(&method(:puts))
+      end
+    end
+
     desc 'limits', 'describe cloudformation account limits'
     def limits
       cf.describe_account_limits.account_limits.tap do |limits|
         print_table limits.map { |l| [l.name, l.value] }
       end
     end
+
   end
 end
