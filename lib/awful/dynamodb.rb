@@ -102,6 +102,7 @@ module Awful
     end
 
     no_commands do
+
       ## uses simple_json to get Aws::Plugins::Protocols::JsonRpc output from scan;
       ## this also means request params need to be raw strings and not symbols, etc
       def scan_to_file(name, exclusive_start_key, fd)
@@ -115,6 +116,41 @@ module Awful
           scan_to_file(name, r['LastEvaluatedKey'], fd)
         end
       end
+
+    end
+
+    desc 'copy SRC DEST', 'copy data from table region/SRC to table region/DEST'
+    method_option :dots, aliases: '-d', default: false, desc: 'Show dots for put_item progress'
+    def copy(src, dst)
+      src_table, src_region = src.split('/').reverse # parse region/table into [table, region]
+      dst_table, dst_region = dst.split('/').reverse
+
+      ## clients are potentially for different regions
+      src_client = Aws::DynamoDB::Client.new({region: src_region}.reject{|_,v| v.nil?})
+      dst_client = Aws::DynamoDB::Client.new({region: dst_region}.reject{|_,v| v.nil?})
+
+      ## lame progress indicator
+      dots = options[:dots] ? ->{print '.'} : ->{}
+
+      ## recursive closure to scan some items from src and put to dest;
+      ## would be more studly as an anonymous y-combinator, but we should write readable code instead
+      scan_and_put = ->(myself, key) {
+        r = src_client.scan(table_name: src_table, exclusive_start_key: key, return_consumed_capacity: 'INDEXES')
+        print "[#{Time.now}] Scanned #{r.count} items; last evaluated key: #{r.last_evaluated_key}"
+        r.items.each do |item|
+          dst_client.put_item(table_name: dst_table, item: item)
+          dots.call #progress
+        end
+        print "\n"
+
+        ## recurse if there are more keys to scan
+        if r.last_evaluated_key
+          myself.call(myself, r.last_evaluated_key)
+        end
+      }
+
+      ## start scanning data
+      scan_and_put.call(scan_and_put, nil)
     end
 
     desc 'scan NAME', 'scan table with NAME'
