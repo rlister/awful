@@ -75,6 +75,21 @@ module Awful
       dynamodb.create_table(params)
     end
 
+    desc 'throughput NAME', 'get or update provisioned throughput for table NAME'
+    method_option :read_capacity_units,  aliases: '-r', type: :numeric, default: nil, desc: 'Read capacity units'
+    method_option :write_capacity_units, aliases: '-w', type: :numeric, default: nil, desc: 'Write capacity units'
+    def throughput(name)
+      provisioned = dynamodb.describe_table(table_name: name).table.provisioned_throughput.to_h
+      provisioned.merge!(symbolize_keys(options))
+      if options.empty?         # just print current throughput
+        provisioned.tap do |p|
+          puts YAML.dump(stringify_keys(p))
+        end
+      else                      # update from options
+        dynamodb.update_table(table_name: name, provisioned_throughput: only_keys_matching(provisioned, %i[read_capacity_units write_capacity_units]))
+      end
+    end
+
     desc 'delete NAME', 'delete table with NAME'
     def delete_table(name)
       confirmation = ask("to delete #{name} and all its data, type the name of table to delete:", :yellow)
