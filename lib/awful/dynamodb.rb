@@ -135,7 +135,7 @@ module Awful
 
       ## add condition not to overwrite existing hash keys
       if options[:no_clobber]
-        hash_key = dynamodb.describe_table(table_name: dst_table).table.key_schema.find{|k| k.key_type == 'HASH'}.attribute_name
+        hash_key = dst_client.describe_table(table_name: dst_table).table.key_schema.find{|k| k.key_type == 'HASH'}.attribute_name
         params.merge!(condition_expression: "attribute_not_exists(#{hash_key})")
       end
 
