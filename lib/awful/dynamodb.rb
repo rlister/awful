@@ -119,8 +119,9 @@ module Awful
 
     end
 
-    desc 'copy SRC DEST', 'copy data from table region/SRC to table region/DEST'
-    method_option :dots, aliases: '-d', default: false, desc: 'Show dots for put_item progress'
+    desc 'copy [region/]SRC [region/]DEST', 'copy data from table region/SRC to table region/DEST'
+    method_option :dots,       aliases: '-d', type: :boolean, default: false, desc: 'Show dots for put_item progress'
+    method_option :no_clobber, aliases: '-n', type: :boolean, default: false, desc: 'Do not overwrite existing items'
     def copy(src, dst)
       src_table, src_region = src.split('/').reverse # parse region/table into [table, region]
       dst_table, dst_region = dst.split('/').reverse
@@ -129,8 +130,17 @@ module Awful
       src_client = Aws::DynamoDB::Client.new({region: src_region}.reject{|_,v| v.nil?})
       dst_client = Aws::DynamoDB::Client.new({region: dst_region}.reject{|_,v| v.nil?})
 
-      ## lame progress indicator
-      dots = options[:dots] ? ->{print '.'} : ->{}
+      ## params for put_item call
+      params = {table_name: dst_table}
+
+      ## add condition not to overwrite existing hash keys
+      if options[:no_clobber]
+        hash_key = dynamodb.describe_table(table_name: dst_table).table.key_schema.find{|k| k.key_type == 'HASH'}.attribute_name
+        params.merge!(condition_expression: "attribute_not_exists(#{hash_key})")
+      end
+
+      ## lame progress indicator, pass true for put, false for skip
+      dots = options[:dots] ? ->(x){print x ? '.' : 'x'} : ->{}
 
       ## recursive closure to scan some items from src and put to dest;
       ## would be more studly as an anonymous y-combinator, but we should write readable code instead
@@ -138,8 +148,12 @@ module Awful
         r = src_client.scan(table_name: src_table, exclusive_start_key: key, return_consumed_capacity: 'INDEXES')
         print "[#{Time.now}] Scanned #{r.count} items; last evaluated key: #{r.last_evaluated_key}"
         r.items.each do |item|
-          dst_client.put_item(table_name: dst_table, item: item)
-          dots.call #progress
+          begin
+            dst_client.put_item(params.merge(item: item))
+            dots.call(true)
+          rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException #item key exists
+            dots.call(false)
+          end
         end
         print "\n"
 
@@ -162,14 +176,52 @@ module Awful
     end
 
     desc 'put_items NAME', 'puts json items into the table with NAME'
+    method_option :no_clobber, aliases: '-n', type: :boolean, default: false, desc: 'Do not overwrite existing items'
     def put_items(name, file = nil)
-      io = (file and File.open(file)) || ((not $stdin.tty?) and $stdin)
-      count = 0
-      io.each_line do |line|
-        dynamodb_simple.put_item('TableName' => name, 'Item' => JSON.parse(line))
-        count += 1
+      params = {'TableName' => name}
+
+      ## set a condition not to overwrite items with existing partition key
+      if options[:no_clobber]
+        hash_key = dynamodb.describe_table(table_name: name).table.key_schema.find{ |k| k.key_type == 'HASH' }.attribute_name
+        params.merge!('ConditionExpression' => "attribute_not_exists(#{hash_key})")
       end
-      count.tap { |c| puts "put #{c} items" }
+
+      ## input data
+      io = (file and File.open(file)) || ((not $stdin.tty?) and $stdin)
+
+      put_count = 0
+      skip_count = 0
+      io.each_line do |line|
+        begin
+          dynamodb_simple.put_item(params.merge('Item' => JSON.parse(line)))
+          put_count += 1
+        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException #item key exists
+          skip_count += 1
+        end
+      end
+
+      ## return counts
+      [put_count, skip_count].tap do |put, skip|
+        puts "put #{put} items, skipped #{skip} items"
+      end
+    end
+
+    desc 'batch_write NAME', 'batch write items to table NAME'
+    def batch_write(name)
+      items = (1..25).map do |n|
+        {
+          put_request: {
+            item: {
+              "store_id"     => "store#{n}",
+              "object_id"    => "object#{n}",
+              "object_value" => "value#{n}"
+            }
+          }
+        }
+      end
+      p items
+      r = dynamodb.batch_write_item(request_items: {name => items})
+      p r
     end
 
   end
