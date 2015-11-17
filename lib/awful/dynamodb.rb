@@ -133,10 +133,10 @@ module Awful
       ## params for put_item call
       params = {table_name: dst_table}
 
-      ## add condition not to overwrite existing hash keys
+      ## add condition not to overwrite existing primary keys (hash or composite hash AND range)
       if options[:no_clobber]
-        hash_key = dst_client.describe_table(table_name: dst_table).table.key_schema.find{|k| k.key_type == 'HASH'}.attribute_name
-        params.merge!(condition_expression: "attribute_not_exists(#{hash_key})")
+        keys = dst_client.describe_table(table_name: dst_table).table.key_schema.map(&:attribute_name)
+        params.merge!(condition_expression: keys.map{|key| "attribute_not_exists(#{key})"}.join(' AND '))
       end
 
       ## lame progress indicator, pass true for put, false for skip
@@ -180,10 +180,10 @@ module Awful
     def put_items(name, file = nil)
       params = {'TableName' => name}
 
-      ## set a condition not to overwrite items with existing partition key
+      ## set a condition not to overwrite items with existing primary key(s)
       if options[:no_clobber]
-        hash_key = dynamodb.describe_table(table_name: name).table.key_schema.find{ |k| k.key_type == 'HASH' }.attribute_name
-        params.merge!('ConditionExpression' => "attribute_not_exists(#{hash_key})")
+        keys = dynamodb.describe_table(table_name: name).table.key_schema.map(&:attribute_name)
+        params.merge!('ConditionExpression' => keys.map{|key| "attribute_not_exists(#{key})"}.join(' AND '))
       end
 
       ## input data
