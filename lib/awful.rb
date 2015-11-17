@@ -10,6 +10,12 @@ module Awful
   class Cli < Thor
     class_option :env,   aliases: '-e', default: nil, desc: 'Load environment variables from file'
     class_option :quiet, aliases: '-q', default: nil, desc: 'Quieten output'
+    class_option :region,               default: nil, desc: 'Set region; can use AWS_REGION instead'
+
+    def initialize(args = [], local_options = {}, config = {})
+      super
+      ENV['AWS_REGION'] = options[:region] if options[:region] #cmdline override for region
+    end
 
     no_commands do
       def ec2
