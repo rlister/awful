@@ -118,6 +118,9 @@ module Awful
         stack.stack_name.match(name)
       end.first
 
+      ## bail if no stack found with this name
+      return [] if stack.nil?
+
       ## get resource from stack
       cf.list_stack_resources(stack_name: stack.stack_name).stack_resource_summaries.select do |resource|
         resource.resource_type.match(/#{options[:type]}/i)
