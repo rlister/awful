@@ -7,6 +7,8 @@ module Awful
       INACTIVE: :red,
       true:     :green,
       false:    :red,
+      RUNNING:  :green,
+      STOPPED:  :red,
     }
 
     no_commands do
@@ -73,5 +75,26 @@ module Awful
         puts arns
       end
     end
+
+    desc 'tasks CLUSTER', 'list tasks for CLUSTER'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def tasks(cluster)
+      arns = ecs.list_tasks(cluster: cluster).task_arns
+      if options[:long]
+        tasks = ecs.describe_tasks(cluster: cluster, tasks: arns).tasks
+        print_table tasks.map { |task|
+          [
+            task.task_arn.split('/').last,
+            task.task_definition_arn.split('/').last,
+            task.container_instance_arn.split('/').last,
+            "#{color(task.last_status)} (#{task.desired_status})",
+            task.started_by,
+          ]
+        }
+      else
+        puts arns
+      end
+    end
+
   end
 end
