@@ -76,6 +76,30 @@ module Awful
       end
     end
 
+    desc 'definitions [FAMILY_PREFIX]', 'task definitions [for FAMILY]'
+    method_option :arns, aliases: '-a', default: false, desc: 'show full ARNs for tasks definitions'
+    def definitions(family = nil)
+      params = {family_prefix: family}.reject{|_,v| v.nil?}
+      arns = ecs.list_task_definitions(params).task_definition_arns
+      if options[:arns]
+        arns
+      else
+        arns.map{|a| a.split('/').last}
+      end.tap(&method(:puts))
+    end
+
+    desc 'dump TASK', 'describe details for TASK definition'
+    method_option :json, aliases: '-j', default: false, desc: 'dump as json instead of yaml'
+    def dump(task)
+      ecs.describe_task_definition(task_definition: task).task_definition.to_h.tap do |hash|
+        if options[:json]
+          puts JSON.pretty_generate(hash)
+        else
+          puts YAML.dump(stringify_keys(hash))
+        end
+      end
+    end
+
     desc 'tasks CLUSTER', 'list tasks for CLUSTER'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def tasks(cluster)
