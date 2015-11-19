@@ -140,7 +140,7 @@ module Awful
       end
 
       ## lame progress indicator, pass true for put, false for skip
-      dots = options[:dots] ? ->(x){print x ? '.' : 'x'} : ->{}
+      dots = options[:dots] ? ->(x){print x ? '.' : 'x'} : ->(_){}
 
       ## recursive closure to scan some items from src and put to dest;
       ## would be more studly as an anonymous y-combinator, but we should write readable code instead
