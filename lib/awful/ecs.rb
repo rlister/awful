@@ -77,15 +77,21 @@ module Awful
     end
 
     desc 'definitions [FAMILY_PREFIX]', 'task definitions [for FAMILY]'
-    method_option :arns, aliases: '-a', default: false, desc: 'show full ARNs for tasks definitions'
+    method_option :arns,     aliases: '-a', default: false, desc: 'show full ARNs for tasks definitions'
+    method_option :inactive, aliases: '-i', default: false, desc: 'show INACTIVE instead of ACTIVE task definitions'
     def definitions(family = nil)
-      params = {family_prefix: family}.reject{|_,v| v.nil?}
+      params = {family_prefix: family, status: options[:inactive] ? 'INACTIVE' : 'ACTIVE'}.reject{|_,v| v.nil?}
       arns = ecs.list_task_definitions(params).task_definition_arns
       if options[:arns]
         arns
       else
         arns.map{|a| a.split('/').last}
       end.tap(&method(:puts))
+    end
+
+    desc 'deregister TASK_DEFINITION', 'mark a task definition as INACTIVE'
+    def deregister(task)
+      ecs.deregister_task_definition(task_definition: task)
     end
 
     desc 'dump TASK', 'describe details for TASK definition'
