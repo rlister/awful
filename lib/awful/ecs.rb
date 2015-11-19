@@ -5,6 +5,8 @@ module Awful
     COLORS = {
       ACTIVE:   :green,
       INACTIVE: :red,
+      true:     :green,
+      false:    :red,
     }
 
     no_commands do
@@ -49,16 +51,24 @@ module Awful
       arns = ecs.list_container_instances(cluster: cluster).container_instance_arns
       if options[:long]
         container_instances = ecs.describe_container_instances(cluster: cluster, container_instances: arns).container_instances
-        ec2_instances = ec2.describe_instances(instance_ids: container_instances.map(&:ec2_instance_id)).map(&:reservations).flatten.map(&:instances).flatten
+
+        ## get hash of tags for each instance id
+        tags = ec2.describe_instances(instance_ids: container_instances.map(&:ec2_instance_id)).
+               map(&:reservations).flatten.
+               map(&:instances).flatten.
+               each_with_object({}) do |i,h|
+          h[i.instance_id] = tag_name(i, '--')
+        end
+
         print_table container_instances.each_with_index.map { |ins, i|
           [
-            tag_name(ec2_instances[i]),
+            tags[ins.ec2_instance_id],
             ins.container_instance_arn.split('/').last,
             ins.ec2_instance_id,
-            "agent:#{ins.agent_connected}",
+            "agent:#{color(ins.agent_connected.to_s)}",
             color(ins.status),
           ]
-        }
+        }.sort
       else
         puts arns
       end
