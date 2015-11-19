@@ -146,7 +146,7 @@ module Awful
       ## would be more studly as an anonymous y-combinator, but we should write readable code instead
       scan_and_put = ->(myself, key) {
         r = src_client.scan(table_name: src_table, exclusive_start_key: key, return_consumed_capacity: 'INDEXES')
-        print "[#{Time.now}] Scanned #{r.count} items; last evaluated key: #{r.last_evaluated_key}"
+        print "[#{Time.now}] [#{src_table}] [scanned:#{r.count}] last key: #{r.last_evaluated_key || 'nil'}"
         r.items.each do |item|
           begin
             dst_client.put_item(params.merge(item: item))
