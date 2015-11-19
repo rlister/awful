@@ -147,15 +147,19 @@ module Awful
       scan_and_put = ->(myself, key) {
         r = src_client.scan(table_name: src_table, exclusive_start_key: key, return_consumed_capacity: 'INDEXES')
         print "[#{Time.now}] [#{src_table}] [scanned:#{r.count}] last key: #{r.last_evaluated_key || 'nil'}"
+        put = skipped = 0
         r.items.each do |item|
           begin
             dst_client.put_item(params.merge(item: item))
+            put += 1
             dots.call(true)
           rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException #item key exists
+            skipped += 1
             dots.call(false)
           end
         end
         print "\n"
+        puts "[#{Time.now}] [#{dst_table}] [put:#{put} skipped:#{skipped}]"
 
         ## recurse if there are more keys to scan
         if r.last_evaluated_key
