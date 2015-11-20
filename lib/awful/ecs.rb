@@ -107,22 +107,27 @@ module Awful
     end
 
     desc 'tasks CLUSTER', 'list tasks for CLUSTER'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long,   aliases: '-l', default: false,     desc: 'Long listing'
+    method_option :status, aliases: '-s', default: 'running', desc: 'choose status to show: running/pending/stopped'
     def tasks(cluster)
-      arns = ecs.list_tasks(cluster: cluster).task_arns
-      if options[:long]
-        tasks = ecs.describe_tasks(cluster: cluster, tasks: arns).tasks
-        print_table tasks.map { |task|
-          [
-            task.task_arn.split('/').last,
-            task.task_definition_arn.split('/').last,
-            task.container_instance_arn.split('/').last,
-            "#{color(task.last_status)} (#{task.desired_status})",
-            task.started_by,
-          ]
-        }
+      status = %w[running pending stopped].find{ |s| s.match(/^#{options[:status]}/i) }
+      arns = ecs.list_tasks(cluster: cluster, desired_status: status.upcase).task_arns
+      if arns.empty?
+        []
+      elsif options[:long]
+        ecs.describe_tasks(cluster: cluster, tasks: arns).tasks.tap do |tasks|
+          print_table tasks.map { |task|
+            [
+              task.task_arn.split('/').last,
+              task.task_definition_arn.split('/').last,
+              task.container_instance_arn.split('/').last,
+              "#{color(task.last_status)} (#{task.desired_status})",
+              task.started_by,
+            ]
+          }
+        end
       else
-        puts arns
+        arns.tap(&method(:puts))
       end
     end
 
