@@ -148,5 +148,14 @@ module Awful
         arns.tap(&method(:puts))
       end
     end
+
+    desc 'run_task CLUSTER TASK_DEFINITION', 'run a task on given cluster'
+    def run_task(cluster, task)
+      ecs.run_task(cluster: cluster, task_definition: task).tap do |response|
+        puts YAML.dump(stringify_keys(response.to_h))
+      end
+    end
+
   end
+
 end
