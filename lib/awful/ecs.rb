@@ -126,5 +126,22 @@ module Awful
       end
     end
 
+    desc 'services CLUSTER', 'list services for a cluster'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def services(cluster)
+      arns = ecs.list_services(cluster: cluster).service_arns
+      if options[:long]
+        print_table ecs.describe_services(cluster: cluster, services: arns).services.map { |svc|
+          [
+            svc.service_name,
+            color(svc.status),
+            svc.task_definition.split('/').last,
+            "#{svc.running_count}/#{svc.desired_count}",
+          ]
+        }
+      else
+        arns.tap(&method(:puts))
+      end
+    end
   end
 end
