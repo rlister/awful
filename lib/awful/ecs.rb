@@ -150,8 +150,26 @@ module Awful
     end
 
     desc 'run_task CLUSTER TASK_DEFINITION', 'run a task on given cluster'
+    method_option :command, aliases: '-c', default: nil, desc: 'override container command as name:cmd,arg1,arg2'
     def run_task(cluster, task)
-      ecs.run_task(cluster: cluster, task_definition: task).tap do |response|
+      container_overrides = {}
+      if options[:command]
+        name, command = options[:command].split(':', 2)
+        container_overrides.merge!(name: name, command: command.split(','))
+      end
+
+      params = {
+        cluster: cluster,
+        task_definition: task,
+        overrides: container_overrides.empty? ? {} : {container_overrides: [container_overrides]}
+      }
+
+      ecs.run_task(params).tap do |response|
+        puts YAML.dump(stringify_keys(response.to_h))
+      end
+    end
+
+    desc 'stop_task CLUSTER TASK_ID', 'stop a running task'
         puts YAML.dump(stringify_keys(response.to_h))
       end
     end
