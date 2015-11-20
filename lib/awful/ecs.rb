@@ -170,6 +170,8 @@ module Awful
     end
 
     desc 'stop_task CLUSTER TASK_ID', 'stop a running task'
+    def stop_task(cluster, id)
+      ecs.stop_task(cluster: cluster, task: id).task.tap do |response|
         puts YAML.dump(stringify_keys(response.to_h))
       end
     end
