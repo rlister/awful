@@ -79,11 +79,12 @@ module Awful
     #   end
     # end
 
-    desc 'last NAME', 'get last AMI matching NAME'
-    def last(name, n = 1)
+    desc 'last NAME', 'get id of last (by creation date) AMI [matching NAME]'
+    method_option :count, aliases: '-n', type: :numeric, default: 1, desc: 'Return N results'
+    def last(name = /./)
       images(options).select do |image|
         image.name.match(name)
-      end.sort_by { |i| i.creation_date }.last(n.to_i).map do |image|
+      end.sort_by(&:creation_date).last(options[:count]).map do |image|
         image.image_id
       end.tap do |list|
         puts list
