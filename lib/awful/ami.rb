@@ -1,7 +1,8 @@
 module Awful
 
   class Ami < Cli
-    class_option :owners, aliases: '-o', default: 'self', desc: 'List images with this owner'
+    class_option :owners,  aliases: '-o', type: :string,  default: 'self', desc: 'List images with this owner'
+    class_option :filters, aliases: 'f',  type: :array,   default: [],     desc: 'Filter using name=value, eg tag:Foo=bar, multiples are ANDed'
 
     COLORS = {
       available: :green,
@@ -11,7 +12,14 @@ module Awful
 
     no_commands do
       def images(options)
-        ec2.describe_images(owners: options[:owners].split(',')).map(&:images).flatten
+        params = {
+          owners:  options[:owners].split(','),
+          filters: options[:filters].map do |tag|
+            k, v = tag.split('=')
+            {name: k, values: v.split(',')}
+          end
+        }.reject { |k,v| v.empty? }
+        ec2.describe_images(params).map(&:images).flatten
       end
 
       def color(string)
