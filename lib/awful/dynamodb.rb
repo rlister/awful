@@ -99,7 +99,6 @@ module Awful
       dynamodb.update_table(table_name: name, stream_specification: stream_specification)
     end
 
-    desc 'delete_item TABLE KEY', 'delete item by primary key'
     desc 'delete NAME', 'delete table with NAME'
     def delete_table(name)
       confirmation = ask("to delete #{name} and all its data, type the name of table to delete:", :yellow)
