@@ -79,7 +79,7 @@ module Awful
     #   end
     # end
 
-    desc 'last NAME', 'get id of last (by creation date) AMI [matching NAME]'
+    desc 'last NAME', 'get ids of last (by creation date) AMIs [matching NAME]'
     method_option :count, aliases: '-n', type: :numeric, default: 1, desc: 'Return N results'
     def last(name = /./)
       images(options).select do |image|
