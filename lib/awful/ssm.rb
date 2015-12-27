@@ -66,12 +66,18 @@ module Awful
     end
 
     desc 'shell_script INSTANCE_IDS', 'run shell script on instances'
-    method_option :commands, aliases: '-c', type: :array,  default: [], desc: 'Commands to run'
-    method_option :comment,                 type: :string, default: nil, desc: 'Brief command description'
+    method_option :commands, aliases: '-c', type: :array,   default: [],  desc: 'Commands to run'
+    method_option :comment,                 type: :string,  default: nil, desc: 'Brief command description'
+    method_option :timeout,  aliases: '-t', type: :numeric, default: nil, desc: 'Timeout in seconds'
+    method_option :bucket,   aliases: '-b', type: :string,  default: nil, desc: 'S3 bucket to save output'
+    method_option :prefix,   aliases: '-p', type: :string,  default: nil, desc: 'Prefix for S3 output key'
     def shell_script(*instance_ids)
       ssm.send_command(
         instance_ids: instance_ids,
         comment: options[:comment],
+        timeout_seconds: options[:timeout],
+        output_s3_bucket_name: options[:bucket],
+        output_s3_key_prefix: options[:prefix],
         document_name: 'AWS-RunShellScript',
         parameters: {
           commands: options[:commands]
