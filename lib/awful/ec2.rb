@@ -16,20 +16,56 @@ module Awful
       end
     end
 
-    desc 'ls [PATTERN]', 'list EC2 instances [with id or tags matching PATTERN]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def ls(name = /./)
-      fields = options[:long] ?
-        ->(i) { [ (tag_name(i) || '-').slice(0..40), i.instance_id, i.instance_type, i.virtualization_type, i.placement.availability_zone, color(i.state.name),
-                  i.security_groups.map(&:group_name).join(',').slice(0..30), i.private_ip_address, i.public_ip_address ] } :
-        ->(i) { [ tag_name(i) || i.instance_id ] }
+    desc 'ls [NAME]', 'get instances with given name regex'
+    method_option :long,        aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :ids,         aliases: '-i', type: :array,   default: [],    desc: 'List of instance ids to retrieve'
+    method_option :tags,        aliases: '-t', type: :array,   default: [],    desc: 'List of tags to filter, as key:value'
+    method_option :stack,       aliases: '-s', type: :string,  default: nil,   desc: 'Filter by given stack'
+    method_option :resource,    aliases: '-r', type: :string,  default: nil,   desc: 'Filter by given stack resource logical id'
+    method_option :autoscaling, aliases: '-a', type: :string,  default: nil,   desc: 'Filter by given autoscaling group'
+    def ls(name = nil)
+      params = {instance_ids: [], filters: []}
 
-      ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.select do |instance|
-        instance.instance_id.match(name) or instance.tags.any? { |tag| tag.value.match(name) }
-      end.map do |instance|
-        fields.call(instance)
-      end.tap do |list|
-        print_table list.sort
+      ## filter by ids
+      options[:ids].each do |id|
+        params[:instance_ids] << id
+      end
+
+      ## filter by arbitrary tags
+      options[:tags].each do |tag|
+        key, value = tag.split(/[:=]/)
+        params[:filters] << {name: "tag:#{key}", values: [value]}
+      end
+
+      ## filter shortcuts for stack, resource, autoscaling group
+      params[:filters] << {name: 'tag:aws:cloudformation:stack-name', values: [options[:stack]]}       if options[:stack]
+      params[:filters] << {name: 'tag:aws:cloudformation:logical-id', values: [options[:resource]]}    if options[:resource]
+      params[:filters] << {name: 'tag:aws:autoscaling:groupName',     values: [options[:autoscaling]]} if options[:autoscaling]
+
+      ## get list of instances
+      instances = ec2.describe_instances(params.reject{ |k,v| v.empty? }).reservations.map(&:instances).flatten
+
+      ## filter by Name tag as a regex
+      instances.select! { |i| tag_name(i, '').match(name) } if name
+
+      ## output
+      instances.tap do |list|
+        if options[:long]
+          print_table list.map { |i|
+            [
+              tag_name(i),
+              i.instance_id,
+              i.instance_type,
+              i.placement.availability_zone,
+              color(i.state.name),
+              i.security_groups.map(&:group_name).join(',').slice(0..30),
+              i.private_ip_address,
+              i.public_ip_address
+            ]
+          }
+        else
+          puts list.map(&:instance_id)
+        end
       end
     end
 
