@@ -113,9 +113,9 @@ module Awful
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     method_option :type, aliases: '-t', default: '.',   desc: 'Filter by regex matching type of resource'
     def resources(name)
-      ## first stack matching name
+      ## get first stack beginning with name
       stack = cf.list_stacks.stack_summaries.select do |stack|
-        stack.stack_name.match(name)
+        stack.stack_name.match(/^#{name}/)
       end.first
 
       ## bail if no stack found with this name
