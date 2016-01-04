@@ -149,8 +149,9 @@ module Awful
     end
 
     desc 'policy NAME [JSON]', 'get policy for stack NAME, or set from JSON file or stdin'
+    method_option :json, aliases: '-j', type: :string, default: nil, desc: 'Inline policy as json string'
     def policy(name, file = nil)
-      policy = file_or_stdin(file)
+      policy = options[:json].nil? ? file_or_stdin(file) : options[:json]
       if policy
         cf.set_stack_policy(stack_name: name, stack_policy_body: policy)
       else
