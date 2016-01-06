@@ -57,6 +57,43 @@ module Awful
       s3_resource.bucket(bucket).object(key).upload_file(file)
     end
 
+    desc 'remove_bucket NAME', 'delete a bucket, which must be empty'
+    def remove_bucket(name)
+      if yes? "Really delete bucket #{name}?", :yellow
+        s3.delete_bucket(bucket: name)
+      end
+    end
+
+    ## rb is an alias for remove_bucket
+    map :rb => :remove_bucket
+
+    no_commands do
+      def clean_objects(bucket, marker = nil)
+        ## get 100 objects at a time
+        objects = s3.list_objects(bucket: bucket, marker: marker)
+        return if objects.contents.empty?
+
+        ## delete them all
+        s3.delete_objects(
+          bucket: bucket,
+          delete: {
+            objects: objects.contents.map { |obj| { key: obj.key } }
+          }
+        )
+
+        ## recurse if there are more
+        if objects.next_marker
+          clean_objects(bucket, objects.next_marker)
+        end
+      end
+    end
+
+    desc 'clean NAME', 'remove all objects from bucket'
+    def clean(name)
+      if yes? "Really delete ALL objects in bucket #{name}?", :yellow
+        clean_objects(name)
+      end
+    end
   end
 
 end
