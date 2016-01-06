@@ -59,6 +59,19 @@ module Awful
       end
     end
 
+    desc 'outputs NAME', 'get stack outputs as a hash'
+    def outputs(name)
+      cf.describe_stacks(stack_name: name).stacks.map do |stack|
+        stack.outputs.each_with_object({}) do |output, hash|
+          hash[output.output_key] = output.output_value
+        end
+      end.tap do |stacks|
+        stacks.each do |output|
+          print_table output
+        end
+      end
+    end
+
     desc 'template NAME', 'get template for stack named NAME'
     def template(name)
       cf.get_template(stack_name: name).template_body.tap do |template|
