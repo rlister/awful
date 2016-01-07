@@ -50,6 +50,16 @@ module Awful
       end
     end
 
+    desc 'exists NAME', 'check if stack exists'
+    def exists(name)
+      begin
+        cf.describe_stacks(stack_name: name)
+        true
+      rescue Aws::CloudFormation::Errors::ValidationError
+        false
+      end.tap(&method(:puts))
+    end
+
     desc 'dump NAME', 'describe stack named NAME'
     def dump(name)
       cf.describe_stacks(stack_name: name).stacks.tap do |stacks|
