@@ -60,6 +60,24 @@ module Awful
       end
     end
 
+    desc 'dump NAME', 'get a record set details'
+    method_option :max_items, aliases: '-m', type: :numeric, default: 1,   desc: 'Max items to show, starting with given name+type'
+    method_option :type,      aliases: '-t', type: :string,  default: nil, desc: 'DNS type to begin the listing of records'
+    def dump(name)
+      zone = name.split('.').last(2).join('.')
+      params = {
+        hosted_zone_id:    get_zone_by_name(zone),
+        start_record_name: name,
+        start_record_type: options[:type],
+        max_items:         options[:max_items]
+      }
+      route53.list_resource_record_sets(params).resource_record_sets.tap do |records|
+        records.each do |record|
+          puts YAML.dump(stringify_keys(record.to_hash))
+        end
+      end
+    end
+
   end
 
 end
