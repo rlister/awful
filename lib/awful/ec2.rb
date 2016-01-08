@@ -56,6 +56,7 @@ module Awful
               tag_name(i, ''),
               i.instance_id,
               i.instance_type,
+              i.image_id,
               i.placement.availability_zone,
               color(i.state.name),
               i.security_groups.map(&:group_name).join(',').slice(0..30),
