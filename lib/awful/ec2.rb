@@ -53,7 +53,7 @@ module Awful
         if options[:long]
           print_table list.map { |i|
             [
-              tag_name(i),
+              tag_name(i, ''),
               i.instance_id,
               i.instance_type,
               i.placement.availability_zone,
@@ -62,7 +62,7 @@ module Awful
               i.private_ip_address,
               i.public_ip_address
             ]
-          }
+          }.sort_by(&:first)
         else
           puts list.map(&:instance_id)
         end
