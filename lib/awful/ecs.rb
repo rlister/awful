@@ -131,6 +131,15 @@ module Awful
       end
     end
 
+    desc 'status CLUSTER TASKS', 'describe status for one or more task IDs/ARNs'
+    def status(cluster, *tasks)
+      ecs.describe_tasks(cluster: cluster, tasks: tasks).tasks.tap do |responses|
+        responses.each do |response|
+          puts YAML.dump(stringify_keys(response.to_h))
+        end
+      end
+    end
+
     desc 'services CLUSTER', 'list services for a cluster'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def services(cluster)
