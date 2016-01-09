@@ -54,16 +54,29 @@ module Awful
       end
     end
 
-    desc 'tags ID [KEY=VALUE]', 'tag an image, or print tags'
-    def tags(id, tag = nil)
-      ami = images(options).find do |image|
-        image.image_id.match(id)
+    desc 'dump IDS', 'describe images'
+    def dump(*ids)
+      ec2.describe_images(image_ids: ids).images.tap do |images|
+        images.each do |image|
+          puts YAML.dump(stringify_keys(image.to_hash))
+        end
       end
-      if tag
-        key, value = tag.split('=')
-        ec2.create_tags(resources: [ami.image_id],  tags: [{key: key, value: value}])
+    end
+
+    desc 'tags ID [TAGS]', 'get tags for AMI, or set multiple tags as key:value'
+    def tags(id, *tags)
+      if tags.empty?
+        ec2.describe_images(image_ids: [id]).images.first.tags.tap do |list|
+          print_table list.map { |t| [t.key, t.value] }
+        end
       else
-        puts ami.tags.map { |t| "#{t[:key]}=#{t[:value]}" }
+        ec2.create_tags(
+          resources: [id],
+          tags: tags.map do |t|
+            key, value = t.split(/[:=]/)
+            {key: key, value: value}
+          end
+        )
       end
     end
 
