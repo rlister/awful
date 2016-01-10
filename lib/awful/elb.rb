@@ -75,6 +75,15 @@ module Awful
       end
     end
 
+    desc 'tag NAME TAG', 'get value of a single tag for given ELB'
+    def tag(name, key)
+      elb.describe_tags(load_balancer_names: [name]).tag_descriptions.first.tags.find do |tag|
+        tag.key == key
+      end.tap do |tag|
+        puts tag.value
+      end
+    end
+
     desc 'dns NAME', 'get DNS names for load-balancers matching NAME'
     def dns(name)
       all_matching_elbs(name).map(&:dns_name).tap do |dns_names|
