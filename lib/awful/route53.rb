@@ -43,19 +43,32 @@ module Awful
     end
 
     desc 'records ZONE', 'list records for given ZONE'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long,      aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :type,      aliases: '-t', type: :array,   default: nil,   desc: 'List of record types to match'
+    method_option :name,      aliases: '-n', type: :array,   default: nil,   desc: 'List of names to match'
+    method_option :max_items, aliases: '-m', type: :numeric, default: nil,   desc: 'Max number of records to check'
     def records(zone)
-      route53.list_resource_record_sets(hosted_zone_id: get_zone_by_name(zone)).resource_record_sets.tap do |records|
+      ## match on given record types
+      include_type = options[:type] ? ->(type) { options[:type].include?(type) } : ->(_) { true }
+
+      ## match on given record names
+      names = options.fetch('name', []).map { |name| name.gsub(/([^\.])$/, '\1.') } # append . to names if missing
+      include_name = options[:name] ? ->(name) { names.include?(name) } : ->(_) { true }
+
+      route53.list_resource_record_sets(
+        hosted_zone_id: get_zone_by_name(zone),
+        max_items:      options[:max_items]
+      ).resource_record_sets.select do |rrset|
+        include_type.call(rrset.type) and include_name.call(rrset.name)
+      end.tap do |records|
         if options[:long]
-          records.map do |r|
+          print_table records.map { |r|
             dns_name = r.alias_target.nil? ? [] : ['ALIAS ' + r.alias_target.dns_name]
             values = r.resource_records.map(&:value)
             [r.name, r.type, (dns_name + values).join(', ')]
-          end.tap do |list|
-            print_table list.sort
-          end
+          }
         else
-          puts records.map(&:name).sort
+          puts records.map(&:name)
         end
       end
     end
