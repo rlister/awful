@@ -108,7 +108,7 @@ module Awful
     end
 
     ## see lambda_events.rb for subcommands
-    desc 'subcommand', 'described here'
+    desc 'events', 'subcommands for lambda event mappings'
     subcommand 'events', LambdaEvents
   end
 end
