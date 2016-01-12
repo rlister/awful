@@ -65,6 +65,10 @@ module Awful
         @s3 ||= Aws::S3::Client.new
       end
 
+      def lambda
+        @lambda ||= Aws::Lambda::Client.new
+      end
+
       def support
         @support ||= Aws::Support::Client.new
       end
