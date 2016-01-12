@@ -57,10 +57,6 @@ module Awful
         @dynamodb_simple ||= Aws::DynamoDB::Client.new(options)
       end
 
-      def dynamodb_streams
-        @dynamodb_streams ||= Aws::DynamoDBStreams::Client.new
-      end
-
       def s3
         @s3 ||= Aws::S3::Client.new
       end

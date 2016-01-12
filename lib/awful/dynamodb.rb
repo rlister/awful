@@ -1,7 +1,5 @@
 module Awful
-
   class DynamoDB < Cli
-
     COLORS = {
       CREATING: :yellow,
       UPDATING: :yellow,
@@ -237,6 +235,8 @@ module Awful
       p r
     end
 
+    ## see lambda_events.rb for subcommands
+    desc 'streams', 'subcommands for dynamodb streams'
+    subcommand 'streams', DynamodbStreams
   end
-
 end
