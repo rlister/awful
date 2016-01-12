@@ -1,3 +1,5 @@
+require 'awful/dynamodb_streams'
+
 module Awful
   class DynamoDB < Cli
     COLORS = {
@@ -236,7 +238,7 @@ module Awful
     end
 
     ## see lambda_events.rb for subcommands
-    desc 'streams', 'subcommands for dynamodb streams'
-    subcommand 'streams', DynamodbStreams
+    desc 'streams SUBCOMMANDS', 'subcommands for dynamodb streams'
+    subcommand 'streams', Streams
   end
 end

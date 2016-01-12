@@ -2,7 +2,6 @@
 #-*- mode: ruby; -*-
 
 require 'awful'
-require 'awful/dynamodb_streams'
 require 'awful/dynamodb'
 
 Awful::DynamoDB.start(ARGV)

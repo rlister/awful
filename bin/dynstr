@@ -1,7 +1,0 @@
-#!/usr/bin/ruby
-#-*- mode: ruby; -*-
-
-require 'awful'
-require 'awful/dynamodb_streams'
-
-Awful::DynamoDBStreams.start(ARGV)

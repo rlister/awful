@@ -1,5 +1,5 @@
 module Awful
-  class DynamodbStreams < Cli
+  class Streams < Cli
     no_commands do
       def streams
         @streams ||= Aws::DynamoDBStreams::Client.new

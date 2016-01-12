@@ -1,5 +1,5 @@
 module Awful
-  class LambdaEvents < Cli
+  class Events < Cli
     COLORS = {
       OK:       :green,
       PROBLEM:  :red,

@@ -2,7 +2,6 @@
 #-*- mode: ruby; -*-
 
 require 'awful'
-require 'awful/lambda_events'
 require 'awful/lambda'
 
 Awful::Lambda.start(ARGV)

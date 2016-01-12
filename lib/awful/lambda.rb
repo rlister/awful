@@ -1,5 +1,6 @@
 require 'open-uri'
 require 'tempfile'
+require 'awful/lambda_events'
 
 module Awful
   class Lambda < Cli
@@ -109,6 +110,6 @@ module Awful
 
     ## see lambda_events.rb for subcommands
     desc 'events', 'subcommands for lambda event mappings'
-    subcommand 'events', LambdaEvents
+    subcommand 'events', Events
   end
 end
