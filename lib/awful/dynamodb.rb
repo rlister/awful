@@ -90,10 +90,10 @@ module Awful
       end
     end
 
-    desc 'stream_specification NAME', 'enable/disable streams on the table'
+    desc 'enable_streams NAME', 'enable/disable streams on the table'
     method_option :stream_view_type, aliases: '-t', default: 'NEW_IMAGE', desc: 'view type for the stream (NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY)'
     method_option :disable,          aliases: '-d', default: false,       desc: 'disable the stream'
-    def stream_specification(name)
+    def enable_streams(name)
       stream_specification = {stream_enabled: !options[:disable]}
       stream_specification.merge!(stream_view_type: options[:stream_view_type].upcase) unless options[:disable]
       dynamodb.update_table(table_name: name, stream_specification: stream_specification)
