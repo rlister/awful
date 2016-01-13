@@ -133,21 +133,25 @@ module Awful
     end
 
     desc 'resources NAME', 'list resources for stack with name NAME'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    method_option :type, aliases: '-t', default: '.',   desc: 'Filter by regex matching type of resource'
+    method_option :long,  aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :type,  aliases: '-t', type: :array,   default: nil,   desc: 'Filter by given resource types, e.g. AWS::IAM::Role'
+    method_option :match, aliases: '-m', type: :string,  default: nil,   desc: 'Filter by case-insensitive regex matching type of resource'
     def resources(name)
-      ## get first stack beginning with name
-      stack = cf.list_stacks.stack_summaries.select do |stack|
-        stack.stack_name.match(/^#{name}/)
-      end.first
+      resources = cf.list_stack_resources(stack_name: name).stack_resource_summaries
 
-      ## bail if no stack found with this name
-      return [] if stack.nil?
+      if options[:type]
+        resources.select! do |resource|
+          options[:type].include?(resource.resource_type)
+        end
+      end
 
-      ## get resource from stack
-      cf.list_stack_resources(stack_name: stack.stack_name).stack_resource_summaries.select do |resource|
-        resource.resource_type.match(/#{options[:type]}/i)
-      end.tap do |resources|
+      if options[:match]
+        resources.select! do |resource|
+          Regexp.new(options[:match], Regexp::IGNORECASE).match(resource.resource_type)
+        end
+      end
+
+      resources.tap do |resources|
         if options[:long]
           print_table resources.map { |r| [r.logical_resource_id, r.physical_resource_id, r.resource_type, color(r.resource_status), r.resource_status_reason] }
         else
