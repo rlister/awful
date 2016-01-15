@@ -1,4 +1,10 @@
 module Awful
+  module Short
+    def lambda_events(*args)
+      Awful::Events.new.invoke(*args)
+    end
+  end
+
   class Events < Cli
     COLORS = {
       OK:       :green,

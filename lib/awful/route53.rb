@@ -1,7 +1,11 @@
 module Awful
+  module Short
+    def r53(*args)
+      Awful::Route53.new.invoke(*args)
+    end
+  end
 
   class Route53 < Cli
-
     no_commands do
       def route53
         @route53 ||= Aws::Route53::Client.new

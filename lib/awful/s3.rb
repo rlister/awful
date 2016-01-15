@@ -1,14 +1,16 @@
 module Awful
+  module Short
+    def s3(*args)
+      Awful::S3.new.invoke(*args)
+    end
+  end
 
   class S3 < Cli
-
     no_commands do
-
       ## resource interface to S3 commands
       def s3_resource
         Aws::S3::Resource.new(client: s3)
       end
-
     end
 
     desc 'ls PATTERN', 'list buckets or objects'
@@ -95,5 +97,4 @@ module Awful
       end
     end
   end
-
 end

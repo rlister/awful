@@ -1,6 +1,12 @@
 require 'awful/dynamodb_streams'
 
 module Awful
+  module Short
+    def dyn(*args)
+      Awful::DynamoDB.new.invoke(*args)
+    end
+  end
+
   class DynamoDB < Cli
     COLORS = {
       CREATING: :yellow,

@@ -1,7 +1,11 @@
 module Awful
+  module Short
+    def ssm(*args)
+      Awful::Ssm.new.invoke(*args)
+    end
+  end
 
   class Ssm < Cli
-
     COLORS = {
       Success:   :green,
       TimedOut:  :red,
@@ -86,7 +90,5 @@ module Awful
         puts response.command.command_id
       end
     end
-
   end
-
 end

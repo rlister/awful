@@ -1,8 +1,13 @@
 module Awful
+  module Short
+    def ami(*args)
+      Awful::Ami.new.invoke(*args)
+    end
+  end
 
   class Ami < Cli
-    class_option :owners,  aliases: '-o', type: :string,  default: 'self', desc: 'List images with this owner'
-    class_option :filters, aliases: 'f',  type: :array,   default: [],     desc: 'Filter using name=value, eg tag:Foo=bar, multiples are ANDed'
+    class_option :owners,  aliases: '-o', type: :string, default: 'self', desc: 'List images with this owner'
+    class_option :filters, aliases: '-f', type: :array,  default: [],     desc: 'Filter using name=value, eg tag:Foo=bar, multiples are ANDed'
 
     COLORS = {
       available: :green,
@@ -103,7 +108,5 @@ module Awful
         puts list
       end
     end
-
   end
-
 end

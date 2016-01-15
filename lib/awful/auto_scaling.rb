@@ -1,7 +1,11 @@
 module Awful
+  module Short
+    def asg(*args)
+      Awful::AutoScaling.new.invoke(*args)
+    end
+  end
 
   class AutoScaling < Cli
-
     COLORS = {
       ## lifecycle states
       Pending:     :yellow,
@@ -348,5 +352,4 @@ module Awful
       end
     end
   end
-
 end

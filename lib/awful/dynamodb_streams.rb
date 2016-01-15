@@ -1,4 +1,10 @@
 module Awful
+  module Short
+    def dyn_streams(*args)
+      Awful::Streams.new.invoke(*args)
+    end
+  end
+
   class Streams < Cli
     no_commands do
       def streams

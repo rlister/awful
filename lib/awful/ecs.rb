@@ -1,7 +1,11 @@
 module Awful
+  module Short
+    def ecs(*args)
+      Awful::Ecs.new.invoke(*args)
+    end
+  end
 
   class Ecs < Cli
-
     COLORS = {
       ACTIVE:   :green,
       INACTIVE: :red,
@@ -184,7 +188,5 @@ module Awful
         puts YAML.dump(stringify_keys(response.to_h))
       end
     end
-
   end
-
 end

@@ -1,7 +1,11 @@
 module Awful
+  module Short
+    def elb(*args)
+      Awful::Elb.new.invoke(*args)
+    end
+  end
 
   class Elb < Cli
-
     COLORS = {
       InService:    :green,
       OutOfService: :red,
@@ -146,7 +150,5 @@ module Awful
         end
       end
     end
-
   end
-
 end

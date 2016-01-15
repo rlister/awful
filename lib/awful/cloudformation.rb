@@ -1,4 +1,9 @@
 module Awful
+  module Short
+    def cf(*args)
+      Awful::CloudFormation.new.invoke(*args)
+    end
+  end
 
   class CloudFormation < Cli
 
