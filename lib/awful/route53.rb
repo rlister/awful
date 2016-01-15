@@ -95,6 +95,69 @@ module Awful
       end
     end
 
-  end
+    # desc 'update NAME', 'change a record set'
+    # method_option :type,  aliases: '-t', type: :string,  default: 'A', desc: 'Type of record: SOA, A, TXT, NS, CNAME, MX, PTR, SRV, SPF, AAAA'
+    # method_option :alias, aliases: '-a', type: :boolean, default: false, desc: 'Create an ALIAS record'
+    # def update(name, target)
+    #   zone = name.split('.').last(2).join('.')
+    #   hosted_zone_id = get_zone_by_name(zone)
+    #   rrset = {
+    #     name: name,
+    #     type: options[:type].upcase
+    #   }
+    #   if options[:alias]
+    #     rrset.merge!(
+    #       alias_target: {
+    #         hosted_zone_id: 'Z35SXDOTRQ7X7K',
+    #         # dns_name: 'dualstack.release-1-elbadmin-uhcp4ix1utqo-918434006.us-east-1.elb.amazonaws.com.',
+    #         dns_name: target,
+    #         evaluate_target_health: false
+    #       }
+    #     )
+    #   else
+    #     rrset.merge!(
+    #       ttl: 180, # required for non-alias, not allowed for alias
+    #       resource_records: [{value: target}]
+    #     )
+    #   end
 
+    #   params = {
+    #     hosted_zone_id: hosted_zone_id,
+    #     change_batch: {
+    #       changes: [
+    #         {
+    #           action: 'UPSERT',
+    #           resource_record_set: rrset
+    #             # {
+    #             # name: name,
+    #             # type: options[:type].upcase,
+    #             # ttl: 180, # required for non-alias, not allowed for alias
+    #             # # resource_records: [
+    #             # #   {value: target}
+    #             # # ]
+    #             # alias_target: {
+    #             #   hosted_zone_id: 'Z35SXDOTRQ7X7K',
+    #             #   dns_name: 'dualstack.release-1-elbadmin-uhcp4ix1utqo-918434006.us-east-1.elb.amazonaws.com.',
+    #             #   evaluate_target_health: false
+    #           # }
+    #           # }
+    #         }
+    #       ]
+    #     }
+    #   }
+    #   # if options[:alias]
+    #   #   params[:change_batch][:changes][0][:alias_target] = {
+    #   #     # hosted_zone_id: '/hostedzone/Z3DZXE0Q79N41H',
+    #   #     hosted_zone_id: 'Z35SXDOTRQ7X7K',
+    #   #     # dns_name: target,
+    #   #     dns_name: 'dualstack.release-1-elbadmin-uhcp4ix1utqo-918434006.us-east-1.elb.amazonaws.com.',
+    #   #     evaluate_target_health: false
+    #   #   }
+    #   # end
+    #   p params
+    #   route53.change_resource_record_sets(params).tap do |response|
+    #     puts YAML.dump(stringify_keys(response.change_info.to_hash))
+    #   end
+    # end
+  end
 end
