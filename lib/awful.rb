@@ -124,7 +124,7 @@ module Awful
       def find_instance(name)
         if name .nil?
           nil?
-        elsif name.match(/^i-[\d[a-f]]{8}$/)
+        elsif name.match(/^i-[\d[a-f]]{8,17}$/)
           name
         else
           ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
