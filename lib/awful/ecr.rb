@@ -1,9 +1,7 @@
 require 'base64'
 
 module Awful
-
   class ECR < Cli
-
     no_commands do
       def ecr
         @ecr ||= Aws::ECR::Client.new
@@ -19,6 +17,19 @@ module Awful
         else
           puts repos.map(&:repository_name)
         end
+      end
+    end
+
+    desc 'create REPO', 'create a repository'
+    def create(repository)
+      ecr.create_repository(repository_name: repository)
+    end
+
+    desc 'delete REPO', 'delete a repository'
+    method_option :force, aliases: '-f', type: :boolean, default: false, desc: 'Force the deletion of the repository if it contains images'
+    def delete(repository)
+      if yes? "Really delete repository #{repository}?", :yellow
+        ecr.delete_repository(repository_name: repository, force: options[:force])
       end
     end
 
@@ -47,7 +58,5 @@ module Awful
         end
       end
     end
-
   end
-
 end
