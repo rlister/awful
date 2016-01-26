@@ -20,6 +20,16 @@ module Awful
       end
     end
 
+    desc 'dump [REPOS]', 'describe given or all repositories as yaml'
+    def dump(*repos)
+      repos = nil if repos.empty? # omit this arg to show all repos
+      ecr.describe_repositories(repository_names: repos).repositories.tap do |list|
+        list.each do |repo|
+          puts YAML.dump(stringify_keys(repo.to_h))
+        end
+      end
+    end
+
     desc 'create REPO', 'create a repository'
     def create(repository)
       ecr.create_repository(repository_name: repository)
@@ -30,6 +40,16 @@ module Awful
     def delete(repository)
       if yes? "Really delete repository #{repository}?", :yellow
         ecr.delete_repository(repository_name: repository, force: options[:force])
+      end
+    end
+
+    desc 'auth [REGISTRIES]', 'dump authorization details for registries (or default)'
+    def auth(*registries)
+      registries = nil if registries.empty?
+      ecr.get_authorization_token(registry_ids: registries).authorization_data.tap do |auths|
+        auths.each do |auth|
+          puts YAML.dump(stringify_keys(auth.to_h))
+        end
       end
     end
 
