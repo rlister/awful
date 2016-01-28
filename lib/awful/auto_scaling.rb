@@ -335,6 +335,8 @@ module Awful
       else
         puts olds.values.flatten.map(&:instance_id)
       end
+
+      olds
     end
 
     desc 'activities ASG', 'describe recent scaling activities for group ASG'
