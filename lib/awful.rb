@@ -40,7 +40,7 @@ module Awful
 
       ## to use dynamodb-local, set DYNAMO_ENDPOINT or DYNAMODB_ENDPOINT to e.g. http://localhost:8000
       def dynamodb
-        options = {endpoint: ENV['DYNAMO_ENDPOINT'] || ENV['DYNAMODB_ENDPOINT']}.reject { |_,v| v.nil? }
+        options = {endpoint: ENV['DYNAMO_ENDPOINT'] || ENV['DYNAMODB_ENDPOINT']}.reject { |_,v| v.to_s.empty? }
         @dynamodb ||= Aws::DynamoDB::Client.new(options)
       end
 
