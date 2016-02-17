@@ -31,26 +31,47 @@ module Awful
       def color(string)
         set_color(string, COLORS.fetch(string.downcase.to_sym, :blue))
       end
+
+      ## get list of stacks
+      def stack_summaries(next_token = nil)
+        response = cf.list_stacks(next_token: next_token)
+        summaries = response.stack_summaries
+        if response.next_token # recurse to get more data
+          summaries += stack_summaries(response.next_token)
+        else
+          summaries
+        end
+      end
     end
 
     desc 'ls [PATTERN]', 'list cloudformation stacks matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     method_option :all,  aliases: '-a', default: false, desc: 'Show all, including stacks in DELETE_COMPLETE'
     def ls(name = /./)
-      stacks = cf.list_stacks.stack_summaries.select do |stack|
-        stack.stack_name.match(name)
-      end
+      stacks = stack_summaries
 
       ## skip deleted stacks unless -a given
       unless options[:all]
         stacks = stacks.select { |stack| stack.stack_status != 'DELETE_COMPLETE' }
       end
 
-      stacks.tap do |stacks|
+      ## match on given arg
+      stacks = stacks.select do |stack|
+        stack.stack_name.match(name)
+      end
+
+      stacks.tap do |list|
         if options[:long]
-          print_table stacks.map { |s| [s.stack_name, s.creation_time, color(s.stack_status), s.template_description] }
+          print_table list.map { |s|
+            [
+              s.stack_name,
+              s.creation_time,
+              color(s.stack_status),
+              s.template_description,
+            ]
+          }.sort
         else
-          puts stacks.map(&:stack_name)
+          puts list.map(&:stack_name).sort
         end
       end
     end
