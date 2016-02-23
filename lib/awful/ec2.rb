@@ -1,6 +1,11 @@
 require 'base64'
 
 module Awful
+  module Short
+    def ec2(*args)
+      Awful::Ec2.new.invoke(*args)
+    end
+  end
 
   class Ec2 < Cli
 
