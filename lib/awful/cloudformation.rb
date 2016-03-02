@@ -144,6 +144,23 @@ module Awful
       end
     end
 
+    ## note this forces a full stack update and requires permissions to do so
+    desc 'tag NAME KEY:VALUE ...', 'update stack tags with one or more key:value pairs'
+    def tag(name, *tags)
+      params = {
+        stack_name:            name,
+        use_previous_template: true,
+        capabilities:          ['CAPABILITY_IAM'],
+        tags: tags.map do |t|
+          key, value = t.split(/[:=]/)
+          {key: key, value: value}
+        end
+      }
+      cf.update_stack(params).tap do |response|
+        puts response.stack_id
+      end
+    end
+
     desc 'delete NAME', 'deletes stack with name NAME'
     def delete(name)
       if yes? "Really delete stack #{name}?", :yellow
