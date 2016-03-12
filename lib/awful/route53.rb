@@ -142,5 +142,34 @@ module Awful
         puts YAML.dump(stringify_keys(response.change_info.to_hash))
       end
     end
+
+    desc 'cname NAME TARGET', 'upsert a CNAME record'
+    method_option :ttl, aliases: '-t', type: :numeric, default: 300, desc: 'TTL for record'
+    def cname(name, target)
+      params = {
+        hosted_zone_id: get_zone_by_name(get_domain(name)),
+        change_batch: {
+          changes: [
+            {
+              action: 'UPSERT',
+              resource_record_set: {
+                name: name,
+                type: 'CNAME',
+                resource_records: [
+                  {
+                    value: target
+                  }
+                ],
+                ttl: options[:ttl]
+              }
+            }
+          ]
+        }
+      }
+      route53.change_resource_record_sets(params).tap do |response|
+        puts YAML.dump(stringify_keys(response.change_info.to_hash))
+      end
+    end
+
   end
 end
