@@ -171,5 +171,11 @@ module Awful
       end
     end
 
+    desc 'change ID', 'get change batch request'
+    def change(id)
+      route53.get_change(id: id).change_info.tap do |info|
+        puts YAML.dump(stringify_keys(info.to_hash))
+      end
+    end
   end
 end
