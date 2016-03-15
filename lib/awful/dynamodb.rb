@@ -82,18 +82,53 @@ module Awful
     end
 
     desc 'throughput NAME', 'get or update provisioned throughput for table NAME'
-    method_option :read_capacity_units,  aliases: '-r', type: :numeric, default: nil, desc: 'Read capacity units'
-    method_option :write_capacity_units, aliases: '-w', type: :numeric, default: nil, desc: 'Write capacity units'
+    method_option :read_capacity_units,  aliases: '-r', type: :numeric, default: nil,   desc: 'Read capacity units'
+    method_option :write_capacity_units, aliases: '-w', type: :numeric, default: nil,   desc: 'Write capacity units'
+    method_option :gsi,                  aliases: '-g', type: :array,   default: [],    desc: 'GSIs to update'
+    method_option :all,                                 type: :boolean, default: false, desc: 'Update all GSIs for the table'
+    method_option :table,                               type: :boolean, default: true,  desc: 'Update througput on table'
     def throughput(name)
-      provisioned = dynamodb.describe_table(table_name: name).table.provisioned_throughput.to_h
-      provisioned.merge!(symbolize_keys(options))
-      if options.empty?         # just print current throughput
-        provisioned.tap do |p|
-          puts YAML.dump(stringify_keys(p))
-        end
-      else                      # update from options
-        dynamodb.update_table(table_name: name, provisioned_throughput: only_keys_matching(provisioned, %i[read_capacity_units write_capacity_units]))
+      table = dynamodb.describe_table(table_name: name).table
+
+      ## current is hash of current provisioned throughput
+      current = table.provisioned_throughput.to_h
+      table.global_secondary_indexes.each do |gsi|
+        current[gsi.index_name] = gsi.provisioned_throughput.to_h
       end
+
+      ## if no updates requested, just print throughput and return table details
+      unless options[:read_capacity_units] or options[:write_capacity_units]
+        puts YAML.dump(stringify_keys(current))
+        return table
+      end
+
+      ## parameters for update request
+      params = { table_name: name }
+
+      ## add table throughput unless told not to
+      params[:provisioned_throughput] = {
+        read_capacity_units:  options[:read_capacity_units]  || current[:read_capacity_units],
+        write_capacity_units: options[:write_capacity_units] || current[:write_capacity_units]
+      } if options[:table]
+
+      ## list of requested GSIs, or all for this table
+      gsis = options[:gsi]
+      gsis = table.global_secondary_indexes.map(&:index_name) if options[:all]
+      params[:global_secondary_index_updates] = gsis.map do |gsi|
+        {
+          update: {
+            index_name: gsi,
+            provisioned_throughput: {
+              read_capacity_units:  options[:read_capacity_units]  || current[gsi][:read_capacity_units],
+              write_capacity_units: options[:write_capacity_units] || current[gsi][:write_capacity_units]
+            }
+          }
+        }
+      end
+
+      ## make the update request
+      params.reject! { |_,v| v.empty? } # sdk hates empty global_secondary_index_updates
+      dynamodb.update_table(params)
     end
 
     desc 'enable_streams NAME', 'enable/disable streams on the table'
