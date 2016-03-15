@@ -92,7 +92,12 @@ module Awful
 
       ## current is hash of current provisioned throughput
       current = table.provisioned_throughput.to_h
-      table.global_secondary_indexes.each do |gsi|
+
+      ## loop-safe version of GSIs (in case nil)
+      global_secondary_indexes = table.global_secondary_indexes || []
+
+      ## get throughput for each GSI
+      global_secondary_indexes.each do |gsi|
         current[gsi.index_name] = gsi.provisioned_throughput.to_h
       end
 
@@ -113,7 +118,7 @@ module Awful
 
       ## list of requested GSIs, or all for this table
       gsis = options[:gsi]
-      gsis = table.global_secondary_indexes.map(&:index_name) if options[:all]
+      gsis = global_secondary_indexes.map(&:index_name) if options[:all]
       params[:global_secondary_index_updates] = gsis.map do |gsi|
         {
           update: {
