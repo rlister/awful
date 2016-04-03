@@ -31,9 +31,9 @@ module Awful
         if options[:long]
           print_table elbs.map { |e|
             [e.load_balancer_name, e.instances.length, e.availability_zones.join(','), e.dns_name]
-          }
+          }.sort
         else
-          puts elbs.map(&:load_balancer_name)
+          puts elbs.map(&:load_balancer_name).sort
         end
       end
     end
