@@ -28,6 +28,7 @@ module Awful
     method_option :stack,       aliases: '-s', type: :string,  default: nil,   desc: 'Filter by given stack'
     method_option :resource,    aliases: '-r', type: :string,  default: nil,   desc: 'Filter by given stack resource logical id'
     method_option :autoscaling, aliases: '-a', type: :string,  default: nil,   desc: 'Filter by given autoscaling group'
+    method_option :state,       aliases: '-S', type: :string,  default: nil,   desc: 'Filter by given state name'
     def ls(name = nil)
       params = {instance_ids: [], filters: []}
 
@@ -46,6 +47,7 @@ module Awful
       params[:filters] << {name: 'tag:aws:cloudformation:stack-name', values: [options[:stack]]}       if options[:stack]
       params[:filters] << {name: 'tag:aws:cloudformation:logical-id', values: [options[:resource]]}    if options[:resource]
       params[:filters] << {name: 'tag:aws:autoscaling:groupName',     values: [options[:autoscaling]]} if options[:autoscaling]
+      params[:filters] << {name: 'instance-state-name',               values: [options[:state]]}       if options[:state]
 
       ## get list of instances
       instances = ec2.describe_instances(params.reject{ |k,v| v.empty? }).reservations.map(&:instances).flatten
