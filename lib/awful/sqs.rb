@@ -14,6 +14,14 @@ module Awful
       def is_url?(str)
         str =~ /\A#{URI::regexp}\z/
       end
+
+      def queue_url(name)
+        if is_url?(name)
+          name
+        else
+          sqs.get_queue_url(queue_name: name).queue_url
+        end
+      end
     end
 
     desc 'ls [PATTERN]', 'list subnets [with any tags matching PATTERN]'
