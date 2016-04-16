@@ -42,13 +42,17 @@ module Awful
     desc 'dump NAME_OR_URL ...', 'get attributes for queues by queue name or url'
     def dump(*names)
       names.map do |name|
-        url = is_url?(name) ? name : sqs.get_queue_url(queue_name: name).queue_url
-        sqs.get_queue_attributes(queue_url: url, attribute_names: %w[All]).attributes
+        sqs.get_queue_attributes(queue_url: queue_url(name), attribute_names: %w[All]).attributes
       end.tap do |queues|
         queues.each do |queue|
           puts YAML.dump(stringify_keys(queue))
         end
       end
+    end
+
+    desc 'send NAME_OR_URL MSG', 'send message to queue'
+    def send(name, msg)
+      sqs.send_message(queue_url: queue_url(name), message_body: msg)
     end
   end
 end
