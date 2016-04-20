@@ -1,6 +1,12 @@
 require 'base64'
 
 module Awful
+  module Short
+    def ecr(*args)
+      Awful::ECR.new.invoke(*args)
+    end
+  end
+
   class ECR < Cli
     no_commands do
       def ecr
