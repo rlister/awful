@@ -78,5 +78,23 @@ module Awful
         end
       end
     end
+
+    desc 'get REPO TAG[S]', 'get image details for all given TAGS'
+    def get(repository, *tags)
+      ids = tags.map do |tag|
+        {image_tag: tag}
+      end
+      ecr.batch_get_image(repository_name: repository, image_ids: ids).images.tap do |imgs|
+        imgs.each do |img|
+          puts YAML.dump(stringify_keys(img.to_h))
+        end
+      end
+    end
+
+    desc 'exists REPO TAG', 'test if repo with given tag exists in registry'
+    def exists(repository, tag)
+      imgs = ecr.batch_get_image(repository_name: repository, image_ids: [{image_tag: tag}]).images
+      (imgs.empty? ? false : true).tap(&method(:puts))
+    end
   end
 end
