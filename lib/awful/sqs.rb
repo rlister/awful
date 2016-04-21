@@ -47,6 +47,18 @@ module Awful
       end
     end
 
+    desc 'create QUEUE_NAME', 'create a new queue'
+    def create(name)
+      sqs.create_queue(queue_name: name).queue_url.tap(&method(:puts))
+    end
+
+    desc 'delete NAME_OR_URL', 'delete the queue'
+    def delete(name)
+      if yes? "Really delete queue #{name}", :yellow
+        sqs.delete_queue(queue_url: queue_url(name))
+      end
+    end
+
     desc 'dump NAME_OR_URL ...', 'get attributes for queues by queue name or url'
     def dump(*names)
       names.map do |name|
