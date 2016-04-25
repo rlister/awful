@@ -55,8 +55,8 @@ module Awful
 
     desc 'changes STACK_NAME CHANGE_SET_NAME', 'list changes for the change set'
     def changes(stack_name, change_set_name)
-      cf.describe_change_set(stack_name: stack_name, change_set_name: change_set_name).changes.tap do |changes|
-        print_table changes.map { |change|
+      cf.describe_change_set(stack_name: stack_name, change_set_name: change_set_name).tap do |set|
+        print_table set.changes.map { |change|
           rc = change.resource_change
           [
             color(rc.action),
