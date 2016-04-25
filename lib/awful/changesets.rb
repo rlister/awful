@@ -35,6 +35,18 @@ module Awful
       end
     end
 
+    ## if no task given , run this
+    default_task :list
+
+    desc 'list STACK_NAME [CHANGE_SET_NAME]', 'meta task to call ls or changes'
+    def list(stack_name, change_set_name = nil)
+      if change_set_name
+        changes(stack_name, change_set_name)
+      else
+        ls(stack_name)
+      end
+    end
+
     desc 'ls STACK_NAME', 'list change sets for stack'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(stack_name)
@@ -67,7 +79,6 @@ module Awful
           ]
         }
       end
-
     end
   end
 
