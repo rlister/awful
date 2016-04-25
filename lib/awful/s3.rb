@@ -11,6 +11,12 @@ module Awful
       def s3_resource
         Aws::S3::Resource.new(client: s3)
       end
+
+      def get_tags(bucket_name)
+        s3.get_bucket_tagging(bucket: bucket_name).tag_set
+      rescue Aws::S3::Errors::NoSuchTagSet # sdk throws this if no tags
+        nil
+      end
     end
 
     desc 'ls PATTERN', 'list buckets or objects'
@@ -43,6 +49,35 @@ module Awful
       s3_resource.bucket(bucket).objects(prefix: prefix).map do |object|
         object.key
       end.tap { |list| puts list }
+    end
+
+    desc 'tagged [NAME_PREFIX]', 'list buckets matching given tags'
+    method_option :tags,     aliases: '-t', type: :array,  default: [],  desc: 'List of tag=value to filter'
+    method_option :stack,    aliases: '-s', type: :string, default: nil, desc: 'Filter by stack name'
+    method_option :resource, aliases: '-r', type: :string, default: nil, desc: 'Filter by stack resource logical id'
+    def tagged(name = '.')
+      conditions = options[:tags].map do |tag|
+        key, value = tag.split('=')
+        ->(set) { (set[0] == key) && (set[1] == value) }
+      end
+      if options[:stack]
+        conditions << ->(set) { (set[0] == 'aws:cloudformation:stack-name') && (set[1] == options[:stack]) }
+      end
+      if options[:resource]
+        conditions << ->(set) { (set[0] == 'aws:cloudformation:logical-id') && (set[1] == options[:resource]) }
+      end
+
+      ## get all buckets and check for a match with conditions
+      s3.list_buckets.buckets.select do |b|
+        b.name.match(/^#{name}/i)
+      end.map do |bucket|
+        tags = get_tags(bucket.name) or next
+        tags.any? do |set|
+          conditions.any? { |c| c.call(set) }
+        end && bucket
+      end.select{|b| b}.tap do |buckets|
+        puts buckets.map(&:name)
+      end
     end
 
     desc 'cat BUCKET/OBJECT', 'stream s3 object to stdout'
