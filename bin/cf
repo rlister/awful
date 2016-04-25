@@ -3,5 +3,6 @@
 
 require 'awful'
 require 'awful/cloudformation'
+require 'awful/changesets'
 
 Awful::CloudFormation.start(ARGV)
