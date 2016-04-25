@@ -48,7 +48,7 @@ module Awful
             ]
           }
         else
-          puts list.map(&:stack_name)
+          puts list.map(&:change_set_name)
         end
       end
     end
