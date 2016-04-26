@@ -51,6 +51,20 @@ module Awful
       end.tap { |list| puts list }
     end
 
+    desc 'exists? NAME', 'test if bucket exists'
+    def exists?(bucket_name)
+      begin
+        s3.head_bucket(bucket: bucket_name) && true
+      rescue Aws::S3::Errors::NotFound
+        false
+      end.tap(&method(:puts))
+    end
+
+    desc 'empty? NAME', 'test if bucket is empty'
+    def empty?(bucket_name)
+      s3.list_objects(bucket: bucket_name, max_keys: 1).contents.empty?.tap(&method(:puts))
+    end
+
     desc 'tagged [NAME_PREFIX]', 'list buckets matching given tags'
     method_option :tags,     aliases: '-t', type: :array,  default: [],  desc: 'List of tag=value to filter'
     method_option :stack,    aliases: '-s', type: :string, default: nil, desc: 'Filter by stack name'
