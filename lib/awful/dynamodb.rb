@@ -133,7 +133,7 @@ module Awful
 
       ## make the update request
       params.reject! { |_,v| v.empty? } # sdk hates empty global_secondary_index_updates
-      dynamodb.update_table(params)
+      update_table(params)
     end
 
     desc 'enable_streams NAME', 'enable/disable streams on the table'
@@ -142,7 +142,7 @@ module Awful
     def enable_streams(name)
       stream_specification = {stream_enabled: !options[:disable]}
       stream_specification.merge!(stream_view_type: options[:stream_view_type].upcase) unless options[:disable]
-      dynamodb.update_table(table_name: name, stream_specification: stream_specification)
+      update_table(table_name: name, stream_specification: stream_specification)
     end
 
     desc 'delete NAME', 'delete table with NAME'
@@ -172,6 +172,27 @@ module Awful
         end
       end
 
+
+      def update_table(options)
+        response = dynamodb.update_table options
+
+        wait_table_update response.data.table_description.table_name, 2
+        response
+      end
+
+
+      def wait_table_update table_name, interval
+        while current_table_status(table_name) != 'ACTIVE'
+          sleep interval
+        end
+      end
+
+
+      def current_table_status table_name
+        response = dynamodb.describe_table table_name: table_name
+
+        response.data.table.table_status
+      end
     end
 
     desc 'copy [region/]SRC [region/]DEST', 'copy data from table region/SRC to table region/DEST'
