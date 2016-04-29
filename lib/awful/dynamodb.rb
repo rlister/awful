@@ -156,24 +156,6 @@ module Awful
       end
     end
 
-    no_commands do
-
-      ## uses simple_json to get Aws::Plugins::Protocols::JsonRpc output from scan;
-      ## this also means request params need to be raw strings and not symbols, etc
-      def scan_to_file(name, exclusive_start_key, fd)
-        r = dynamodb_simple.scan('TableName' => name, 'ExclusiveStartKey' => exclusive_start_key)
-        r['Items'].each do |item|
-          fd.puts JSON.generate(item)
-        end
-
-        ## recurse if more data to get
-        if r.has_key?('LastEvaluatedKey')
-          scan_to_file(name, r['LastEvaluatedKey'], fd)
-        end
-      end
-
-    end
-
     desc 'copy [region/]SRC [region/]DEST', 'copy data from table region/SRC to table region/DEST'
     method_option :dots,       aliases: '-d', type: :boolean, default: false, desc: 'Show dots for put_item progress'
     method_option :no_clobber, aliases: '-n', type: :boolean, default: false, desc: 'Do not overwrite existing items'
@@ -230,7 +212,15 @@ module Awful
     method_option :output, aliases: '-o', type: :string, default: nil, desc: 'Output filename (default: stdout)'
     def scan(name, exclusive_start_key = nil)
       fd = options[:output] ? File.open(options[:output], 'w') : $stdout.dup # open output file or stdout
-      scan_to_file(name, exclusive_start_key, fd)
+      exclusive_start_key = nil
+      loop do
+        r = dynamodb_simple.scan('TableName' => name, 'ExclusiveStartKey' => exclusive_start_key)
+        r['Items'].each do |item|
+          fd.puts JSON.generate(item)
+        end
+        exclusive_start_key = r['LastEvaluatedKey']
+        break unless exclusive_start_key
+      end
       fd.close
     end
 
