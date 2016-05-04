@@ -53,6 +53,11 @@ module Awful
       end
     end
 
+    desc 'status NAME', 'get status of NAMEd table'
+    def status(name)
+      dynamodb.describe_table(table_name: name).table.table_status.tap(&method(:puts))
+    end
+
     desc 'create_table NAME', 'create table with NAME'
     def create_table(name, file = nil)
       opt = load_cfg(options, file)
