@@ -184,11 +184,13 @@ module Awful
       ## lame progress indicator, pass true for put, false for skip
       dots = options[:dots] ? ->(x){print x ? '.' : 'x'} : ->(_){}
 
-      ## recursive closure to scan some items from src and put to dest;
-      ## would be more studly as an anonymous y-combinator, but we should write readable code instead
-      scan_and_put = ->(myself, key) {
-        r = src_client.scan(table_name: src_table, exclusive_start_key: key, return_consumed_capacity: 'INDEXES')
-        print "[#{Time.now}] [#{src_table}] scanned:#{r.count} key:#{r.last_evaluated_key || 'nil'}"
+      ## loop on each batch of scanned items
+      exclusive_start_key = nil
+      loop do
+        r = src_client.scan(table_name: src_table, exclusive_start_key: exclusive_start_key, return_consumed_capacity: 'INDEXES')
+        puts "[#{Time.now}] [#{src_table}] scanned:#{r.count} key:#{r.last_evaluated_key || 'nil'}"
+
+        ## loop items and put to destination
         put = skipped = 0
         r.items.each do |item|
           begin
@@ -200,17 +202,14 @@ module Awful
             dots.call(false)
           end
         end
-        print "\n"
+
+        print "\n" if options[:dots]
         puts "[#{Time.now}] [#{dst_table}] put:#{put} skipped:#{skipped}"
 
-        ## recurse if there are more keys to scan
-        if r.last_evaluated_key
-          myself.call(myself, r.last_evaluated_key)
-        end
-      }
-
-      ## start scanning data
-      scan_and_put.call(scan_and_put, nil)
+        ## loop if there are more keys to scan
+        exclusive_start_key = r.last_evaluated_key
+        break unless exclusive_start_key
+      end
     end
 
     desc 'scan NAME', 'scan table with NAME'
