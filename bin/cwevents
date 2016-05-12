@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awful'
+require 'awful/cloudwatch_events'
+
+Awful::CloudWatchEvents.start(ARGV)
