@@ -16,24 +16,28 @@ module Awful
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(prefix = nil)
       next_token = nil
+      groups = []
       loop do
         response = logs.describe_log_groups(log_group_name_prefix: prefix, next_token: next_token)
-        response.log_groups.tap do |groups|
-          if options[:long]
-            print_table groups.map { |group|
-              [
-                group.log_group_name,
-                group.retention_in_days,
-                Time.at(group.creation_time.to_i/1000),
-                group.stored_bytes,
-              ]
-            }
-          else
-            puts groups.map(&:log_group_name)
-          end
-        end
+        groups = groups + response.log_groups
         next_token = response.next_token
         break if next_token.nil?
+      end
+
+      ## return and output groups
+      groups.tap do |groups|
+        if options[:long]
+          print_table groups.map { |group|
+            [
+              group.log_group_name,
+              group.retention_in_days,
+              Time.at(group.creation_time.to_i/1000),
+              group.stored_bytes,
+            ]
+          }
+        else
+          puts groups.map(&:log_group_name)
+        end
       end
     end
 
