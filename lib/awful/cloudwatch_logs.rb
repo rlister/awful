@@ -81,5 +81,24 @@ module Awful
       end
     end
 
+    no_commands do
+      def latest_stream(group)
+        logs.describe_log_streams(
+          log_group_name: group,
+          order_by: 'LastEventTime',
+          descending: true,
+          limit: 1
+        ).log_streams.first
+      end
+    end
+
+    desc 'latest GROUP', 'get name of latest stream for GROUP'
+    def latest(group)
+      latest_stream(group).tap do |stream|
+        puts stream.log_stream_name
+      end
+    end
+
+    desc 'events GROUP [STREAM]', 'get log events from given, or latest, stream'
   end
 end
