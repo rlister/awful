@@ -100,5 +100,33 @@ module Awful
     end
 
     desc 'events GROUP [STREAM]', 'get log events from given, or latest, stream'
+    method_option :long,  aliases: '-l', default: false, desc: 'Long listing'
+    method_option :limit, aliases: '-n', default: 50,    desc: 'Count to limit returned results'
+    def events(group, stream = nil)
+      next_token = nil
+      events = []
+      loop do
+        response = logs.get_log_events(
+          log_group_name: group,
+          log_stream_name: stream || latest_stream(group).log_stream_name,
+          start_from_head: true,
+          limit: options[:limit],
+          next_token: next_token
+        )
+        break if response.events.count == 0 # break on no results as token does not get to nil
+        events = events + response.events
+        next_token = response.next_backward_token
+        break if events.count >= options[:limit].to_i
+        break if next_token.nil? # not sure if this is ever set to nil
+      end
+      events.tap do |ev|
+        if options[:long]
+          print_table ev.map { |e| [Time.at(e.timestamp.to_i/1000), e.message] }
+        else
+          puts ev.map(&:message)
+        end
+      end
+    end
+
   end
 end
