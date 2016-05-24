@@ -52,8 +52,8 @@ module Awful
     end
 
     desc 'streams GROUP [PREFIX]', 'list log streams for GROUP'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    method_option :limit, aliases: '-n', default: 50, desc: 'Count to limit returned results'
+    method_option :long,  aliases: '-l', default: false, desc: 'Long listing'
+    method_option :limit, aliases: '-n', default: 50,    desc: 'Count to limit returned results'
     method_option :alpha, aliases: '-a', default: false, desc: 'Order by name'
     def streams(group, prefix = nil)
       next_token = nil
