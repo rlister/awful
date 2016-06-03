@@ -74,5 +74,18 @@ module Awful
     def send(name, msg)
       sqs.send_message(queue_url: queue_url(name), message_body: msg)
     end
+
+    desc 'receive NAME_OR_URL', 'receive message from queue'
+    method_option :number, aliases: '-n', type: :numeric, default: 1, desc: 'max messages to receive'
+    def receive(name)
+      sqs.receive_message(queue_url: queue_url(name), max_number_of_messages: options[:number]).messages.tap do |messages|
+        puts messages.map(&:body)
+      end
+    end
+
+    desc 'purge NAME_OR_URL', 'delete messages in queue'
+    def purge(name)
+      sqs.purge_queue(queue_url: queue_url(name))
+    end
   end
 end
