@@ -71,8 +71,16 @@ module Awful
     end
 
     desc 'send NAME_OR_URL MSG', 'send message to queue'
-    def send(name, msg)
-      sqs.send_message(queue_url: queue_url(name), message_body: msg)
+    def send(name, message)
+      sqs.send_message(queue_url: queue_url(name), message_body: message)
+    end
+
+    desc 'send_batch NAME_OR_URL MSGS', 'send a batch of up to 10 messages to queue'
+    def send_batch(name, *messages)
+      entries = messages.map.with_index do |m, i|
+        {id: i.to_s, message_body: m}
+      end
+      sqs.send_message_batch(queue_url: queue_url(name), entries: entries)
     end
 
     desc 'receive NAME_OR_URL', 'receive message from queue'
