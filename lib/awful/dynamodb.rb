@@ -22,9 +22,18 @@ module Awful
 
       ## return array of tables names matching name
       def all_matching_tables(name)
-        dynamodb.list_tables.table_names.select do |table|
-          table.match(name)
+        tables = []
+        last_evaluated = nil
+        loop do # get 100 at a time from sdk
+          response = dynamodb.list_tables(exclusive_start_table_name: last_evaluated)
+          matching = response.table_names.select do |table|
+            table.match(name)
+          end
+          tables = tables + matching
+          last_evaluated = response.last_evaluated_table_name
+          break unless last_evaluated
         end
+        tables
       end
     end
 
