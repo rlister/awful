@@ -6,14 +6,23 @@ require 'thor'
 require 'yaml'
 require 'erb'
 
+## our implementation of tap for switchable output
+class Object
+  def output
+    yield self unless $awful_quiet
+    self
+  end
+end
+
 module Awful
   class Cli < Thor
     class_option :env,   aliases: '-e', default: nil, desc: 'Load environment variables from file'
-    class_option :quiet, aliases: '-q', default: nil, desc: 'Quieten output'
+    class_option :quiet, aliases: '-q', type: :boolean, default: false, desc: 'Quieten output'
     class_option :region,               default: nil, desc: 'Set region; can use AWS_REGION instead'
 
     def initialize(args = [], local_options = {}, config = {})
       super
+      $awful_quiet = options[:quiet]                           # turn off output
       ENV['AWS_REGION'] = options[:region] if options[:region] #cmdline override for region
     end
 

@@ -194,7 +194,7 @@ module Awful
         end
       end
 
-      resources.tap do |resources|
+      resources.output do |resources|
         if options[:long]
           print_table resources.map { |r| [r.logical_resource_id, r.physical_resource_id, r.resource_type, color(r.resource_status), r.resource_status_reason] }
         else

@@ -32,7 +32,7 @@ module Awful
       if options[:long]
         queues.map do |queue|
           sqs.get_queue_attributes(queue_url: queue, attribute_names: attr).attributes
-        end.tap do |list|
+        end.output do |list|
           print_table list.map { |q|
             [
               q['QueueArn'].split(':').last,
@@ -43,7 +43,7 @@ module Awful
           }
         end
       else
-        queues.map { |q| q.split('/').last }.tap(&method(:puts))
+        queues.map { |q| q.split('/').last }.output(&method(:puts))
       end
     end
 
