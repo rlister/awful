@@ -83,7 +83,7 @@ module Awful
         true
       rescue Aws::CloudFormation::Errors::ValidationError
         false
-      end.tap(&method(:puts))
+      end.output(&method(:puts))
     end
 
     desc 'dump NAME', 'describe stack named NAME'
@@ -101,7 +101,7 @@ module Awful
         stack.outputs.each_with_object({}) do |output, hash|
           hash[output.output_key] = output.output_value
         end
-      end.tap do |stacks|
+      end.output do |stacks|
         stacks.each do |output|
           print_table output
         end
@@ -170,7 +170,7 @@ module Awful
 
     desc 'events NAME', 'show events for stack with name NAME'
     def events(name)
-      cf.describe_stack_events(stack_name: name).stack_events.tap do |events|
+      cf.describe_stack_events(stack_name: name).stack_events.output do |events|
         print_table events.map { |e| [e.timestamp, color(e.resource_status), e.resource_type, e.logical_resource_id, e.resource_status_reason] }
       end
     end
@@ -208,11 +208,11 @@ module Awful
     def id(name, resource)
       detail = cf.describe_stack_resource(stack_name: name, logical_resource_id: resource).stack_resource_detail
       if options[:all]
-        detail.tap do |d|
+        detail.output do |d|
           puts YAML.dump(stringify_keys(d.to_hash))
         end
       else
-        detail.physical_resource_id.tap do |id|
+        detail.physical_resource_id.output do |id|
           puts id
         end
       end
