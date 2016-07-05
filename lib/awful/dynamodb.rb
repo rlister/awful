@@ -237,6 +237,28 @@ module Awful
       fd.close
     end
 
+    desc 'query NAME', 'query table with NAME'
+    method_option :hash_key, aliases: '-k', type: :string, default: nil, desc: 'Hash key'
+    method_option :hash_key_value, aliases: '-v', type: :string, default: nil, desc: 'Hash key value'
+    method_option :output, aliases: '-o', type: :string, default: nil, desc: 'Output filename (default: stdout)'
+    def query(name, exclusive_start_key = nil)
+      fd = options[:output] ? File.open(options[:output], 'w') : $stdout.dup # open output file or stdout
+      exclusive_start_key = nil
+      loop do
+        r = dynamodb_simple.query('TableName' => name,
+                                  'ExclusiveStartKey' => exclusive_start_key,
+                                  'KeyConditionExpression' => "#{options[:hash_key]} = :hash_key_value",
+                                  'ExpressionAttributeValues' => { ":hash_key_value" => { S: options[:hash_key_value] } })
+        r['Items'].each do |item|
+          fd.puts JSON.generate(item)
+        end
+        exclusive_start_key = r['LastEvaluatedKey']
+        break unless exclusive_start_key
+      end
+      fd.close
+    end
+
+
     desc 'put_items NAME', 'puts json items into the table with NAME'
     method_option :no_clobber, aliases: '-n', type: :boolean, default: false, desc: 'Do not overwrite existing items'
     def put_items(name, file = nil)
