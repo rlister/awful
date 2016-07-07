@@ -353,5 +353,20 @@ module Awful
         end
       end
     end
+
+    desc 'enter_standby ASG INSTANCES', 'put instance(s) in standby mode'
+    method_option :decrement, type: :boolean, default: true, desc: 'should decrement desired capacity'
+    def enter_standby(name, *instances)
+      autoscaling.enter_standby(
+        auto_scaling_group_name: name,
+        instance_ids: instances,
+        should_decrement_desired_capacity: options[:decrement]
+      )
+    end
+
+    desc 'exit_standby ASG INSTANCES', 'remove instance(s) from standby mode'
+    def exit_standby(name, *instances)
+      autoscaling.exit_standby(auto_scaling_group_name: name, instance_ids: instances)
+    end
   end
 end
