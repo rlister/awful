@@ -34,6 +34,10 @@ module Awful
           asg.auto_scaling_group_name.match(name) or tag_name(asg, '').match(name)
         end
       end
+
+      def instance_lifecycle_state(*instance_ids)
+        autoscaling.describe_auto_scaling_instances(instance_ids: instance_ids).auto_scaling_instances.map(&:lifecycle_state)
+      end
     end
 
     desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
@@ -351,6 +355,16 @@ module Awful
         else
           puts activities.map(&:activity_id)
         end
+      end
+    end
+
+    desc 'wait ASG INSTANCES', 'wait for instances to enter given lifecycle state'
+    method_option :state,  aliases: '-s', type: :string,  default: 'InService', desc: 'poll until instances enter given lifecycle state'
+    method_option :period, aliases: '-p', type: :numeric, default: 5,           desc: 'period between polls'
+    def wait(name, *instance_ids)
+      until instance_lifecycle_state(*instance_ids).all?{ |s| s == options[:state] }
+        puts "waiting for #{instance_ids.count} instances to enter state #{options[:state]}"
+        sleep options[:period]
       end
     end
 
