@@ -260,7 +260,6 @@ module Awful
       fd.close
     end
 
-
     desc 'put_items NAME', 'puts json items into the table with NAME'
     method_option :no_clobber, aliases: '-n', type: :boolean, default: false, desc: 'Do not overwrite existing items'
     def put_items(name, file = nil)
