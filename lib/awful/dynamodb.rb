@@ -67,6 +67,14 @@ module Awful
       dynamodb.describe_table(table_name: name).table.table_status.tap(&method(:puts))
     end
 
+    desc 'key NAME', 'get hash or range key of named table'
+    method_option :type, aliases: '-t', type: :string, default: :hash, desc: 'type of key to get: hash or range'
+    def key(name)
+      dynamodb.describe_table(table_name: name).table.key_schema.find do |schema|
+        schema.key_type == options[:type].to_s.upcase
+      end.attribute_name.output(&method(:puts))
+    end
+
     desc 'create_table NAME', 'create table with NAME'
     def create_table(name, file = nil)
       opt = load_cfg(options, file)
