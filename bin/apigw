@@ -3,5 +3,6 @@
 
 require 'awful'
 require 'awful/api_gateway'
+require 'awful/api_gateway_deployments'
 
-Awful::ApiGateway.start(ARGV)
+Awful::ApiGateway::RestApi.start(ARGV)
