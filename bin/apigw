@@ -4,5 +4,8 @@
 require 'awful'
 require 'awful/api_gateway'
 require 'awful/api_gateway_deployments'
+require 'awful/api_gateway_resources'
+require 'awful/api_gateway_methods'
+require 'awful/api_gateway_stages'
 
 Awful::ApiGateway::RestApi.start(ARGV)
