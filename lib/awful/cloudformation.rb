@@ -234,5 +234,18 @@ module Awful
       end
     end
 
+    ## this is almost entirely useless in practice
+    desc 'cost', 'describe cost for given stack'
+    def cost(name)
+      template = cf.get_template(stack_name: name).template_body
+      parameters = cf.describe_stacks(stack_name: name).stacks.first.parameters.map do |p|
+        {
+          parameter_key:      p.parameter_key,
+          parameter_value:    p.parameter_value,
+          use_previous_value: true, # use param values from actual stack
+        }
+      end
+      puts cf.estimate_template_cost(template_body: template, parameters: parameters).url
+    end
   end
 end
