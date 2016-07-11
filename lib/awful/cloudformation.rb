@@ -56,7 +56,7 @@ module Awful
       end
 
       ## match on given arg
-      stacks = stacks.select do |stack|
+      stacks.select do |stack|
         stack.stack_name.match(name)
       end
 
