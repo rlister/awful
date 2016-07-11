@@ -95,16 +95,16 @@ module Awful
       end
     end
 
-    desc 'outputs NAME', 'get stack outputs as a hash'
-    def outputs(name)
-      cf.describe_stacks(stack_name: name).stacks.map do |stack|
-        stack.outputs.each_with_object({}) do |output, hash|
-          hash[output.output_key] = output.output_value
-        end
-      end.output do |stacks|
-        stacks.each do |output|
-          print_table output
-        end
+    desc 'outputs NAME [KEY]', 'get stack outputs as a ruby hash, or individual value'
+    def outputs(name, key = nil)
+      output_hash = cf.describe_stacks(stack_name: name).stacks.first.outputs.each_with_object({}) do |o, hash|
+        hash[o.output_key] = o.output_value
+      end
+
+      if key
+        output_hash[key.to_s].output(&method(:puts))
+      else
+        output_hash.output(&method(:print_table))
       end
     end
 
