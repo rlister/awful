@@ -58,9 +58,7 @@ module Awful
       ## match on given arg
       stacks.select do |stack|
         stack.stack_name.match(name)
-      end
-
-      stacks.tap do |list|
+      end.output do |list|
         if options[:long]
           print_table list.map { |s|
             [
@@ -88,7 +86,7 @@ module Awful
 
     desc 'dump NAME', 'describe stack named NAME'
     def dump(name)
-      cf.describe_stacks(stack_name: name).stacks.tap do |stacks|
+      cf.describe_stacks(stack_name: name).stacks.output do |stacks|
         stacks.each do |stack|
           puts YAML.dump(stringify_keys(stack.to_hash))
         end
@@ -110,7 +108,7 @@ module Awful
 
     desc 'template NAME', 'get template for stack named NAME'
     def template(name)
-      cf.get_template(stack_name: name).template_body.tap do |template|
+      cf.get_template(stack_name: name).template_body.output do |template|
         puts template
       end
     end
@@ -118,17 +116,17 @@ module Awful
     desc 'validate FILE', 'validate given template in FILE or stdin'
     def validate(file = nil)
       begin
-        cf.validate_template(template_body: file_or_stdin(file)).tap do |response|
+        cf.validate_template(template_body: file_or_stdin(file)).output do |response|
           puts YAML.dump(stringify_keys(response.to_hash))
         end
       rescue Aws::CloudFormation::Errors::ValidationError => e
-        e.tap { |err| puts err.message }
+        e.output { |err| puts err.message }
       end
     end
 
     desc 'create NAME', 'create stack with name NAME'
     def create(name, file = nil)
-      cf.create_stack(stack_name: name, template_body: file_or_stdin(file)).tap do |response|
+      cf.create_stack(stack_name: name, template_body: file_or_stdin(file)).output do |response|
         puts response.stack_id
       end
     end
@@ -136,11 +134,11 @@ module Awful
     desc 'update NAME', 'update stack with name NAME'
     def update(name, file = nil)
       begin
-        cf.update_stack(stack_name: name, template_body: file_or_stdin(file)).tap do |response|
+        cf.update_stack(stack_name: name, template_body: file_or_stdin(file)).output do |response|
           puts response.stack_id
         end
       rescue Aws::CloudFormation::Errors::ValidationError => e
-        e.tap { |err| puts err.message }
+        e.output { |err| puts err.message }
       end
     end
 
@@ -156,7 +154,7 @@ module Awful
           {key: key, value: value}
         end
       }
-      cf.update_stack(params).tap do |response|
+      cf.update_stack(params).output do |response|
         puts response.stack_id
       end
     end
@@ -225,13 +223,13 @@ module Awful
       if policy
         cf.set_stack_policy(stack_name: name, stack_policy_body: policy)
       else
-        cf.get_stack_policy(stack_name: name).stack_policy_body.tap(&method(:puts))
+        cf.get_stack_policy(stack_name: name).stack_policy_body.output(&method(:puts))
       end
     end
 
     desc 'limits', 'describe cloudformation account limits'
     def limits
-      cf.describe_account_limits.account_limits.tap do |limits|
+      cf.describe_account_limits.account_limits.output do |limits|
         print_table limits.map { |l| [l.name, l.value] }
       end
     end
