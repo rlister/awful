@@ -14,6 +14,9 @@ module Awful
       ## health statuses
       Healthy:     :green,
       Unhealthy:   :red,
+      ## same for asg instances describe
+      HEALTHY:     :green,
+      UNHEALTHY:   :red,
       ## activity status
       Successful:   :green,
       Failed:      :red,
@@ -69,23 +72,31 @@ module Awful
       end
     end
 
-    desc 'instances', 'list instances for instances in groups matching NAME'
-    method_option :long,                 aliases: '-l', default: false, desc: 'Long listing'
-    method_option :launch_configuration, aliases: '-L', default: false, desc: 'Get instance launch_configs'
-    def instances(name)
-      all_matching_asgs(name).map(&:instances).flatten.tap do |instances|
+    desc 'instances ASGS', 'describe autoscaling instances for groups'
+    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :describe, aliases: '-d', type: :boolean, default: false, desc: 'make extra call to get ASG name for each instance'
+    def instances(*names)
+      instances = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).auto_scaling_groups.map(&:instances).flatten
+
+      ## make extra call to get asg name as part of object
+      if options[:describe]
+        instances = autoscaling.describe_auto_scaling_instances(instance_ids: instances.map(&:instance_id)).auto_scaling_instances
+      end
+
+      instances.output do |list|
         if options[:long]
-          print_table instances.map { |i|
+          print_table list.map { |i|
             [
               i.instance_id,
+              options[:describe] ? i.auto_scaling_group_name : nil,
               i.availability_zone,
               color(i.lifecycle_state),
               color(i.health_status),
               i.launch_configuration_name,
-            ]
+            ].compact
           }
         else
-          puts instances.map(&:instance_id)
+          puts list.map(&:instance_id)
         end
       end
     end
