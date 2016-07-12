@@ -373,10 +373,10 @@ module Awful
       end
     end
 
-    desc 'wait ASG INSTANCES', 'wait for instances to enter given lifecycle state'
+    desc 'wait INSTANCES', 'wait for instances to enter given lifecycle state'
     method_option :state,  aliases: '-s', type: :string,  default: 'InService', desc: 'poll until instances enter given lifecycle state'
     method_option :period, aliases: '-p', type: :numeric, default: 5,           desc: 'period between polls'
-    def wait(name, *instance_ids)
+    def wait(*instance_ids)
       until instance_lifecycle_state(*instance_ids).all?{ |s| s == options[:state] }
         puts "waiting for #{instance_ids.count} instances to enter state #{options[:state]}"
         sleep options[:period]
