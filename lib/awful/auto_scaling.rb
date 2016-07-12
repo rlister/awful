@@ -46,7 +46,7 @@ module Awful
     desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
-      all_matching_asgs(name).tap do |asgs|
+      all_matching_asgs(name).output do |asgs|
         if options[:long]
           print_table asgs.map { |a|
             [
@@ -108,7 +108,7 @@ module Awful
       ids = all_matching_asgs(name).map(&:instances).flatten.map(&:instance_id)
 
       ## get instance details for these IDs
-      ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).tap do |instances|
+      ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).output do |instances|
         if options[:long]
           print_table instances.map { |i|
             [ i.public_ip_address, i.private_ip_address, i.instance_id, i.image_id, i.instance_type, i.placement.availability_zone, color(i.state.name), i.launch_time ]
@@ -135,7 +135,7 @@ module Awful
 
     desc 'dump NAME', 'dump existing autoscaling group as yaml'
     def dump(name)
-      all_matching_asgs(name).map(&:to_hash).tap do |asgs|
+      all_matching_asgs(name).map(&:to_hash).output do |asgs|
         asgs.each do |asg|
           puts YAML.dump(stringify_keys(asg)) unless options[:quiet]
         end
@@ -244,7 +244,7 @@ module Awful
     method_option :newest, aliases: '-n', default: false, type: :boolean, desc: 'Stop newest instances instead of oldest'
     def stop(name, num = 1)
       ins = options[:newest] ? newest(name) : oldest(name)
-      ins.first(num.to_i).map(&:instance_id).tap do |ids|
+      ins.first(num.to_i).map(&:instance_id).output do |ids|
         if yes? "Really stop #{num} instances: #{ids.join(',')}?", :yellow
           ec2.stop_instances(instance_ids: ids)
         end
@@ -253,7 +253,7 @@ module Awful
 
     desc 'processes', 'describe scaling process types for use with suspend/resume'
     def processes
-      autoscaling.describe_scaling_process_types.processes.map(&:process_name).sort.tap do |procs|
+      autoscaling.describe_scaling_process_types.processes.map(&:process_name).sort.output do |procs|
         puts procs
       end
     end
@@ -262,7 +262,9 @@ module Awful
     method_option :list, aliases: '-l', default: false, type: :boolean, desc: 'list currently suspended processes'
     def suspend(name, *procs)
       if options[:list]
-        autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: Array(name)).map(&:auto_scaling_groups).flatten.first.suspended_processes.tap do |list|
+        autoscaling.describe_auto_scaling_groups(
+          auto_scaling_group_names: Array(name)
+        ).map(&:auto_scaling_groups).flatten.first.suspended_processes.output do |list|
           print_table list.map{ |proc| [ proc.process_name, proc.suspension_reason] }
         end
       elsif procs.empty?
@@ -295,9 +297,11 @@ module Awful
     desc 'launch_configuration NAMES', 'get launch configs for given ASGs'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def launch_configuration(*names)
-      autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).map(&:auto_scaling_groups).flatten.each_with_object({}) do |asg, h|
+      autoscaling.describe_auto_scaling_groups(
+        auto_scaling_group_names: names
+      ).map(&:auto_scaling_groups).flatten.each_with_object({}) do |asg, h|
         h[asg.auto_scaling_group_name] = asg.launch_configuration_name
-      end.tap do |hash|
+      end.output do |hash|
         if options[:long]
           print_table hash
         else
@@ -325,7 +329,7 @@ module Awful
       end
 
       if olds.empty?
-        # noop
+      # noop
       elsif options[:detach]
         autoscaling.detach_instances(auto_scaling_group_name: name, instance_ids: olds.values.flatten.map(&:instance_id), should_decrement_desired_capacity: options[:decrement])
       elsif options[:deregister]
@@ -342,7 +346,7 @@ module Awful
         olds.values.flatten.map do |instance|
           autoscaling.terminate_instance_in_auto_scaling_group(instance_id: instance.instance_id, should_decrement_desired_capacity: options[:decrement] && true)
           instance.instance_id
-        end.tap { |ids| say("Terminated: #{ids.join(',')}", :yellow) }
+        end.output { |ids| say("Terminated: #{ids.join(',')}", :yellow) }
       elsif options[:groups]
         puts olds.keys
       elsif options[:long]
@@ -358,7 +362,7 @@ module Awful
     method_option :long,  aliases: '-l', default: false, desc: 'Long listing'
     method_option :cause, aliases: '-c', default: false, desc: 'Long listing with cause of activity'
     def activities(name)
-      autoscaling.describe_scaling_activities(auto_scaling_group_name: name).activities.tap do |activities|
+      autoscaling.describe_scaling_activities(auto_scaling_group_name: name).activities.output do |activities|
         if options[:long]
           print_table activities.map { |a| [color(a.status_code), a.description, a.start_time, a.end_time] }
         elsif options[:cause]
