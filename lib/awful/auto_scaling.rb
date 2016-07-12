@@ -378,7 +378,7 @@ module Awful
     method_option :period, aliases: '-p', type: :numeric, default: 5,           desc: 'period between polls'
     def wait(*instance_ids)
       until instance_lifecycle_state(*instance_ids).all?{ |s| s == options[:state] }
-        puts "waiting for #{instance_ids.count} instances to enter state #{options[:state]}"
+        puts "waiting for #{instance_ids.count} instances to enter state #{options[:state]}" unless options[:quiet]
         sleep options[:period]
       end
     end
