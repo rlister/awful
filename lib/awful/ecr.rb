@@ -112,6 +112,28 @@ module Awful
       end
     end
 
+    desc 'inspect REPO TAGS', 'get first history element from manifest'
+    def inspect(repository, *tags)
+      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.tap do |imgs|
+        imgs.map do |img|
+          JSON.parse(JSON.parse(img.image_manifest)['history'].first['v1Compatibility'])
+        end.output do |list|
+          puts YAML.dump(list)
+        end
+      end
+    end
+
+    desc 'date REPO TAGS', 'get created date for given tags'
+    def date(repository, *tags)
+      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.tap do |imgs|
+        imgs.map do |img|
+          JSON.parse(JSON.parse(img.image_manifest)['history'].first['v1Compatibility'])['created']
+        end.output do |dates|
+          puts dates
+        end
+      end
+    end
+
     desc 'exists REPO TAG', 'test if repo with given tag exists in registry'
     def exists(repository, tag)
       imgs = ecr.batch_get_image(repository_name: repository, image_ids: image_tags(tag)).images
