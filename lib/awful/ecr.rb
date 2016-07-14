@@ -144,5 +144,45 @@ module Awful
       imgs = ecr.batch_get_image(repository_name: repository, image_ids: image_tags(tag)).images
       (imgs.empty? ? false : true).tap(&method(:puts))
     end
+
+    desc 'reap REPO', 'reap old images for repo'
+    method_option :batch,   aliases: '-b', type: :numeric, default: 10,    desc: 'batch size to get and delete'
+    method_option :dry_run, aliases: '-d', type: :boolean, default: false, desc: 'dry run, do not delete, implies verbose'
+    method_option :verbose, aliases: '-v', type: :boolean, default: false, desc: 'print images to be deleted'
+    def reap(repository, days, token: nil)
+      verbose = options[:verbose] || options[:dry_run]
+      next_token = token
+      now = Time.now.utc
+
+      deleted = failures = 0
+      loop do
+        ## get a batch of image ids
+        response = ecr.list_images(repository_name: repository, next_token: next_token, max_results: options[:batch])
+
+        ## get details for the batch of images and calculate age
+        old_images = ecr.batch_get_image(repository_name: repository, image_ids: response.image_ids).images.select do |image|
+          date = Time.parse(parse_created(image)).utc
+          age = ((now - date)/(24*60*60)).to_i
+          if age > days.to_i
+            puts "#{date} #{age} #{image.image_id.image_tag}" if verbose
+            true
+          else
+            false
+          end
+        end
+
+        ## delete old images
+        unless options[:dry_run] || old_images.empty?
+          r = ecr.batch_delete_image(repository_name: repository, image_ids: old_images.map(&:image_id))
+          deleted  += r.image_ids.count
+          failures += r.failures.count
+        end
+
+        next_token = response.next_token
+        break unless next_token
+      end
+
+      puts "deleted: #{deleted}, failures: #{failures}"
+    end
   end
 end
