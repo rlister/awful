@@ -19,6 +19,11 @@ module Awful
           {image_tag: tag}
         end
       end
+
+      ## parse created date from manifest of Aws::ECR::Types::Image object
+      def parse_created(image)
+        JSON.parse(JSON.parse(image.image_manifest)['history'].first['v1Compatibility'])['created']
+      end
     end
 
     desc 'ls', 'list commands'
@@ -127,7 +132,7 @@ module Awful
     def date(repository, *tags)
       ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.tap do |imgs|
         imgs.map do |img|
-          JSON.parse(JSON.parse(img.image_manifest)['history'].first['v1Compatibility'])['created']
+          parse_created(img)
         end.output do |dates|
           puts dates
         end
