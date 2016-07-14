@@ -22,6 +22,13 @@ module Awful
           elb.load_balancer_name.match(name)
         end
       end
+
+      ## get array of instance_id hashes in form expected by get methods
+      def instance_ids(*ids)
+        ids.map do |id|
+          {instance_id: id}
+        end
+      end
     end
 
     desc 'ls [NAME]', 'list load-balancers matching NAME'
@@ -130,13 +137,13 @@ module Awful
     end
 
     desc 'register INSTANCES', 'register listed instance IDs with ELB'
-    def register(name, *instance_ids)
-      elb.register_instances_with_load_balancer(load_balancer_name: name, instances: instance_ids.map{ |id| {instance_id: id} })
+    def register(name, *instances)
+      elb.register_instances_with_load_balancer(load_balancer_name: name, instances: instance_ids(*instances))
     end
 
     desc 'deregister INSTANCES', 'deregister listed instance IDs from ELB'
-    def deregister(name, *instance_ids)
-      elb.deregister_instances_from_load_balancer(load_balancer_name: name, instances: instance_ids.map{ |id| {instance_id: id} })
+    def deregister(name, *instances)
+      elb.deregister_instances_from_load_balancer(load_balancer_name: name, instances: instance_ids(*instances))
     end
 
     desc 'state [INSTANCE_IDS]', 'show health state for all instances, or listed instance ids'
