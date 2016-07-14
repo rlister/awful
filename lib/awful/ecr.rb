@@ -29,7 +29,7 @@ module Awful
     desc 'ls', 'list commands'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls
-      ecr.describe_repositories.repositories.tap do |repos|
+      ecr.describe_repositories.repositories.output do |repos|
         if options[:long]
           print_table repos.map { |r| [r.repository_name, r.registry_id, r.repository_arn] }
         else
@@ -41,7 +41,7 @@ module Awful
     desc 'dump [REPOS]', 'describe given or all repositories as yaml'
     def dump(*repos)
       repos = nil if repos.empty? # omit this arg to show all repos
-      ecr.describe_repositories(repository_names: repos).repositories.tap do |list|
+      ecr.describe_repositories(repository_names: repos).repositories.output do |list|
         list.each do |repo|
           puts YAML.dump(stringify_keys(repo.to_h))
         end
@@ -64,7 +64,7 @@ module Awful
     desc 'auth [REGISTRIES]', 'dump authorization details for registries (or default)'
     def auth(*registries)
       registries = nil if registries.empty?
-      ecr.get_authorization_token(registry_ids: registries).authorization_data.tap do |auths|
+      ecr.get_authorization_token(registry_ids: registries).authorization_data.output do |auths|
         auths.each do |auth|
           puts YAML.dump(stringify_keys(auth.to_h))
         end
@@ -77,7 +77,7 @@ module Awful
     def login(*registries)
       cmd = options[:print] ? :puts : :system
       registries = nil if registries.empty?
-      ecr.get_authorization_token(registry_ids: registries).authorization_data.tap do |auths|
+      ecr.get_authorization_token(registry_ids: registries).authorization_data.output do |auths|
         auths.each do |auth|
           user, pass = Base64.decode64(auth.authorization_token).split(':')
           send(cmd, "docker login -u #{user} -p #{pass} -e #{options[:email]} #{auth.proxy_endpoint}")
@@ -110,7 +110,7 @@ module Awful
 
     desc 'get REPO TAG[S]', 'get image details for all given TAGS'
     def get(repository, *tags)
-      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.tap do |imgs|
+      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.output do |imgs|
         imgs.each do |img|
           puts YAML.dump(stringify_keys(img.to_h))
         end
@@ -119,7 +119,7 @@ module Awful
 
     desc 'inspect REPO TAGS', 'get first history element from manifest'
     def inspect(repository, *tags)
-      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.tap do |imgs|
+      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.output do |imgs|
         imgs.map do |img|
           JSON.parse(JSON.parse(img.image_manifest)['history'].first['v1Compatibility'])
         end.output do |list|
@@ -130,7 +130,7 @@ module Awful
 
     desc 'date REPO TAGS', 'get created date for given tags'
     def date(repository, *tags)
-      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.tap do |imgs|
+      ecr.batch_get_image(repository_name: repository, image_ids: image_tags(*tags)).images.output do |imgs|
         imgs.map do |img|
           parse_created(img)
         end.output do |dates|
@@ -142,7 +142,7 @@ module Awful
     desc 'exists REPO TAG', 'test if repo with given tag exists in registry'
     def exists(repository, tag)
       imgs = ecr.batch_get_image(repository_name: repository, image_ids: image_tags(tag)).images
-      (imgs.empty? ? false : true).tap(&method(:puts))
+      (imgs.empty? ? false : true).output(&method(:puts))
     end
 
     desc 'reap REPO', 'reap old images for repo'
