@@ -43,10 +43,10 @@ module Awful
       end
     end
 
-    desc 'ls [PATTERN]', 'list autoscaling groups with name matching PATTERN'
+    desc 'ls NAMES', 'list autoscaling groups with given names'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def ls(name = /./)
-      all_matching_asgs(name).output do |asgs|
+    def ls(*names)
+      autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).auto_scaling_groups.output do |asgs|
         if options[:long]
           print_table asgs.map { |a|
             [
