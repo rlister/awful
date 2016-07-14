@@ -34,7 +34,7 @@ module Awful
     desc 'ls [NAME]', 'list load-balancers matching NAME'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(name = /./)
-      all_matching_elbs(name).tap do |elbs|
+      all_matching_elbs(name).output do |elbs|
         if options[:long]
           print_table elbs.map { |e|
             [e.load_balancer_name, e.instances.length, e.availability_zones.join(','), e.dns_name]
@@ -53,7 +53,7 @@ module Awful
       end.flatten
 
       if instances.empty?
-        instances.tap { puts 'no instances' }
+        instances.output { puts 'no instances' }
       else
         instances_by_id = instances.inject({}) { |hash,instance| hash[instance.instance_id] = instance; hash }
         if options[:long]
@@ -61,16 +61,16 @@ module Awful
             health = instances_by_id[instance.instance_id]
             instance_name = tag_name(instance) || '-'
             [ instance.instance_id, instance_name, instance.public_ip_address, color(health.state), health.reason_code, health.description ]
-          end.tap { |list| print_table list }
+          end.output { |list| print_table list }
         else
-          instances_by_id.keys.tap { |list| puts list }
+          instances_by_id.keys.output { |list| puts list }
         end
       end
     end
 
     desc 'dump NAME', 'dump VPC with id or tag NAME as yaml'
     def dump(name)
-      all_matching_elbs(name).map(&:to_hash).tap do |elbs|
+      all_matching_elbs(name).map(&:to_hash).output do |elbs|
         elbs.each do |elb|
           puts YAML.dump(stringify_keys(elb))
         end
@@ -79,7 +79,7 @@ module Awful
 
     desc 'tags NAME', 'dump tags on all ELBs matching NAME (up to 20)'
     def tags(name)
-      elb.describe_tags(load_balancer_names: all_matching_elbs(name).map(&:load_balancer_name)).tag_descriptions.tap do |tags|
+      elb.describe_tags(load_balancer_names: all_matching_elbs(name).map(&:load_balancer_name)).tag_descriptions.output do |tags|
         tags.each do |tag|
           puts YAML.dump(stringify_keys(tag.to_hash))
         end
@@ -90,14 +90,14 @@ module Awful
     def tag(name, key)
       elb.describe_tags(load_balancer_names: [name]).tag_descriptions.first.tags.find do |tag|
         tag.key == key
-      end.tap do |tag|
+      end.output do |tag|
         puts tag.value
       end
     end
 
     desc 'dns NAME', 'get DNS names for load-balancers matching NAME'
     def dns(name)
-      all_matching_elbs(name).map(&:dns_name).tap do |dns_names|
+      all_matching_elbs(name).map(&:dns_name).output do |dns_names|
         puts dns_names
       end
     end
@@ -111,7 +111,7 @@ module Awful
       opt.delete(:availability_zones) unless opt.fetch(:subnets, []).empty?
       opt = remove_empty_strings(opt)
       opt = only_keys_matching(opt, whitelist)
-      elb.create_load_balancer(opt).map(&:dns_name).flatten.tap { |dns| puts dns }
+      elb.create_load_balancer(opt).map(&:dns_name).flatten.output { |dns| puts dns }
       health_check(name) if opt[:health_check]
     end
 
@@ -124,7 +124,7 @@ module Awful
     def health_check(name)
       opt = load_cfg.merge(options.reject(&:nil?))
       hc = elb.configure_health_check(load_balancer_name: name, health_check: opt[:health_check])
-      hc.map(&:health_check).flatten.first.tap do |h|
+      hc.map(&:health_check).flatten.first.output do |h|
         print_table h.to_hash
       end
     end
@@ -148,12 +148,12 @@ module Awful
 
     desc 'state [INSTANCE_IDS]', 'show health state for all instances, or listed instance ids'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def state(name, *instance_ids)
-      elb.describe_instance_health(load_balancer_name: name, instances: instance_ids.map { |id| {instance_id: id} }).instance_states.tap do |instances|
+    def state(name, *instances)
+      elb.describe_instance_health(load_balancer_name: name, instances: instance_ids(*instances)).instance_states.output do |list|
         if options[:long]
-          print_table instances.map { |i| [ i.instance_id, i.state, i.reason_code, i.description ] }
+          print_table list.map { |i| [ i.instance_id, i.state, i.reason_code, i.description ] }
         else
-          puts instances.map { |i| i.state }
+          puts list.map(&:state)
         end
       end
     end
