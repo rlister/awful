@@ -253,21 +253,29 @@ module Awful
     end
 
     desc 'query NAME', 'query table with NAME'
-    method_option :hash_key,       aliases: '-k', type: :string,  default: nil,   desc: 'Hash key'
-    method_option :hash_key_value, aliases: '-v', type: :string,  default: nil,   desc: 'Hash key value'
-    method_option :output,         aliases: '-o', type: :string,  default: nil,   desc: 'Output filename (default: stdout)'
-    method_option :count,          aliases: '-c', type: :boolean, default: false, desc: 'Return count instead of items'
+    method_option :hash_key,        aliases: '-k', type: :string,  default: nil,   desc: 'Hash key'
+    method_option :hash_key_value,  aliases: '-v', type: :string,  default: nil,   desc: 'Hash key value'
+    method_option :range_key,       aliases: '-K', type: :string,  default: nil,   desc: 'Range key'
+    method_option :range_key_value, aliases: '-V', type: :string,  default: nil,   desc: 'Range key value'
+    method_option :output,          aliases: '-o', type: :string,  default: nil,   desc: 'Output filename (default: stdout)'
+    method_option :count,           aliases: '-c', type: :boolean, default: false, desc: 'Return count instead of items'
     def query(name, exclusive_start_key = nil)
       fd = options[:output] ? File.open(options[:output], 'w') : $stdout.dup # open output file or stdout
       exclusive_start_key = nil
       count = 0
+      condition = "#{options[:hash_key]} = :hash_key_value"
+      condition += " and #{options[:range_key]} = :range_key_value" if options[:range_key]
+      attributes = {
+        ':hash_key_value'  => { S: options[:hash_key_value] },
+        ':range_key_value' => { S: options[:range_key_value] },
+      }.reject { |_,v| v[:S].nil? }
       loop do
         r = dynamodb_simple.query(
           'TableName'                 => name,
           'ExclusiveStartKey'         => exclusive_start_key,
           'Select'                    => options[:count] ? 'COUNT' : 'ALL_ATTRIBUTES',
-          'KeyConditionExpression'    => "#{options[:hash_key]} = :hash_key_value",
-          'ExpressionAttributeValues' => { ":hash_key_value" => { S: options[:hash_key_value] } }
+          'KeyConditionExpression'    => condition,
+          'ExpressionAttributeValues' => attributes,
         )
         count += r.fetch('Count', 0)
         r.fetch('Items', []).each do |item|
