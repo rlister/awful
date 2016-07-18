@@ -230,19 +230,27 @@ module Awful
     end
 
     desc 'scan NAME', 'scan table with NAME'
-    method_option :output, aliases: '-o', type: :string, default: nil, desc: 'Output filename (default: stdout)'
+    method_option :output, aliases: '-o', type: :string,  default: nil,   desc: 'Output filename (default: stdout)'
+    method_option :count,  aliases: '-c', type: :boolean, default: false, desc: 'Return count instead of items'
     def scan(name, exclusive_start_key = nil)
       fd = options[:output] ? File.open(options[:output], 'w') : $stdout.dup # open output file or stdout
       exclusive_start_key = nil
+      count = 0
       loop do
-        r = dynamodb_simple.scan('TableName' => name, 'ExclusiveStartKey' => exclusive_start_key)
-        r['Items'].each do |item|
+        r = dynamodb_simple.scan(
+          'TableName'         => name,
+          'Select'            => options[:count] ? 'COUNT' : 'ALL_ATTRIBUTES',
+          'ExclusiveStartKey' => exclusive_start_key
+        )
+        count += r.fetch('Count', 0)
+        r.fetch('Items', []).each do |item|
           fd.puts JSON.generate(item)
         end
         exclusive_start_key = r['LastEvaluatedKey']
         break unless exclusive_start_key
       end
       fd.close
+      puts count if options[:count]
     end
 
     desc 'query NAME', 'query table with NAME'
