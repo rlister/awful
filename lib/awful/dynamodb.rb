@@ -45,18 +45,18 @@ module Awful
       if options[:long]
         tables.map do |table|
           dynamodb.describe_table(table_name: table).table
-        end.tap do |list|
+        end.output do |list|
           print_table list.map { |t| [ t.table_name, color(t.table_status), t.item_count, t.table_size_bytes, t.creation_date_time ] }
         end
       else
-        tables.tap { |t| puts t }
+        tables.output(&method(:puts))
       end
     end
 
     desc 'dump NAME', 'dump table with name'
     def dump(name)
       all_matching_tables(name).map do |table_name|
-        dynamodb.describe_table(table_name: table_name).table.to_hash.tap do |table|
+        dynamodb.describe_table(table_name: table_name).table.to_hash.output do |table|
           puts YAML.dump(stringify_keys(table))
         end
       end
@@ -64,7 +64,7 @@ module Awful
 
     desc 'status NAME', 'get status of NAMEd table'
     def status(name)
-      dynamodb.describe_table(table_name: name).table.table_status.tap(&method(:puts))
+      dynamodb.describe_table(table_name: name).table.table_status.output(&method(:puts))
     end
 
     desc 'key NAME', 'get hash or range key of named table'
@@ -92,7 +92,7 @@ module Awful
       ## scrub unwanted keys from GSIs
       if opt.has_key?(:global_secondary_indexes)
         params[:global_secondary_indexes] = opt[:global_secondary_indexes].map do |gsi|
-          only_keys_matching(gsi, %i[index_name key_schema projection]).tap do |g|
+          only_keys_matching(gsi, %i[index_name key_schema projection]).output do |g|
             if gsi[:provisioned_throughput]
               g[:provisioned_throughput] = only_keys_matching(gsi[:provisioned_throughput], %i[read_capacity_units write_capacity_units])
             end
@@ -307,7 +307,7 @@ module Awful
       end
 
       ## return counts
-      [put_count, skip_count].tap do |put, skip|
+      [put_count, skip_count].output do |put, skip|
         puts "put #{put} items, skipped #{skip} items"
       end
     end
