@@ -1,4 +1,9 @@
 module Awful
+  module Short
+    def sg(*args)
+      Awful::SecurityGroup.new.invoke(*args)
+    end
+  end
 
   class SecurityGroup < Cli
 
