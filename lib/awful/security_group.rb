@@ -7,19 +7,40 @@ module Awful
 
   class SecurityGroup < Cli
 
-    desc 'ls [NAME]', 'list security groups [matching NAME]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def ls(name = /./)
-      fields = options[:long] ?
-        ->(s) { [tag_name(s), s.group_id, s.group_name[0..50], s.vpc_id, s.description] } :
-        ->(s) { [s.group_name] }
+    desc 'ls [IDs]', 'list security groups'
+    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :ingress,  aliases: '-i', type: :boolean, default: false, desc: 'list ingress permissions'
+    method_option :egress,   aliases: '-o', type: :boolean, default: false, desc: 'list egress permissions'
+    method_option :tags,     aliases: '-t', type: :array,   default: [],    desc: 'List of tags to filter, as key=value'
+    method_option :stack,    aliases: '-s', type: :string,  default: nil,   desc: 'Filter by given stack'
+    method_option :resource, aliases: '-r', type: :string,  default: nil,   desc: 'Filter by given stack resource logical id'
+    def ls(*ids)
+      ## filter by tags
+      filters = []
+      options[:tags].each do |tag|
+        key, value = tag.split('=')
+        filters << {name: "tag:#{key}", values: [value]}
+      end
+      filters << {name: 'tag:aws:cloudformation:stack-name', values: [options[:stack]]}    if options[:stack]
+      filters << {name: 'tag:aws:cloudformation:logical-id', values: [options[:resource]]} if options[:resource]
+      filters = nil if filters.empty? # sdk does not like empty arrays as args
 
-      ec2.describe_security_groups.map(&:security_groups).flatten.select do |sg|
-        sg.group_name.match(name) or sg.group_id.match(name)
-      end.map do |sg|
-        fields.call(sg)
-      end.tap do |list|
-        print_table list
+      ec2.describe_security_groups(group_ids: ids, filters: filters).security_groups.output do |groups|
+        if options[:long]
+          print_table groups.map { |g|
+            [ g.group_name, g.group_id, g.vpc_id, g.description ]
+          }.sort
+        elsif options[:ingress]
+          print_table groups.map { |g|
+            [ g.group_name, g.group_id, g.ip_permissions.map { |p| "#{p.ip_protocol}:#{p.from_port}-#{p.to_port}" }.join(',') ]
+          }.sort
+        elsif options[:egress]
+          print_table groups.map { |g|
+            [ g.group_name, g.group_id, g.ip_permissions_egress.map { |p| "#{p.ip_protocol}:#{p.from_port}-#{p.to_port}" }.join(',') ]
+          }.sort
+        else
+          puts groups.map(&:group_name).sort
+        end
       end
     end
 
