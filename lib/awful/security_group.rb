@@ -58,7 +58,7 @@ module Awful
 
     desc 'dump NAME', 'dump security group with NAME [or ID] as yaml'
     def dump(name)
-      first_matching_sg(name).tap do |sg|
+      first_matching_sg(name).output do |sg|
         puts YAML.dump(stringify_keys(sg.to_hash))
       end
     end
@@ -66,14 +66,14 @@ module Awful
     desc 'inbound NAME', 'show inbound rules for named security group'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def inbound(name)
-      first_matching_sg(name).ip_permissions.tap do |perms|
+      first_matching_sg(name).ip_permissions.output do |perms|
         sources = ->(perm) { perm.ip_ranges.map(&:cidr_ip) + perm.user_id_group_pairs.map(&:group_id) }
         if options[:long]
           perms.map do |p|
             sources.call(p).map do |s|
               [p.ip_protocol, p.from_port, p.to_port, s]
             end
-          end.flatten(1).tap { |list| print_table list }
+          end.flatten(1).output { |list| print_table list }
         else
           puts perms.map { |p| sources.call(p) }.flatten
         end
