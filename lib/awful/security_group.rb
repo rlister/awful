@@ -81,5 +81,4 @@ module Awful
     end
 
   end
-
 end
