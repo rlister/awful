@@ -80,5 +80,30 @@ module Awful
       end
     end
 
+    desc 'revoke ID [IP_PERMISSIONS]', 'revoke rules from security group'
+    method_option :source_security_group_name,     type: :string, default: nil, desc: 'ip permission'
+    method_option :source_security_group_owner_id, type: :string, default: nil, desc: 'ip permission'
+    method_option :ip_protocol,                    type: :string, default: nil, desc: 'ip permission'
+    method_option :from_port,                      type: :string, default: nil, desc: 'ip permission'
+    method_option :to_port,                        type: :string, default: nil, desc: 'ip permission'
+    method_option :cidr_ip,                        type: :string, default: nil, desc: 'ip permission'
+    def revoke(id, *ip_permissions)
+      ## invoked from code, process ip_permissions objects as args
+      perms = ip_permissions.map do |p|
+        p.to_hash.tap do |h|
+          h[:user_id_group_pairs] = nil if h[:user_id_group_pairs].empty? # sdk will complain if this is empty
+        end
+      end
+
+      perms = nil if perms.empty?
+
+      ## can set these on command-line
+      params = %i[source_security_group_name source_security_group_owner_id ip_protocol from_port to_port cidr_ip].each_with_object({}) do |k,h|
+        h[k] = options[k]
+      end
+
+      ec2.revoke_security_group_ingress(params.merge(group_id: id, ip_permissions: perms))
+    end
+
   end
 end
