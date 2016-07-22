@@ -91,7 +91,9 @@ module Awful
       ## invoked from code, process ip_permissions objects as args
       perms = ip_permissions.map do |p|
         p.to_hash.tap do |h|
-          h[:user_id_group_pairs] = nil if h[:user_id_group_pairs].empty? # sdk will complain if this is empty
+          h.each do |k,v|
+            h[k] = nil if (v.respond_to?(:empty?) && v.empty?) # no empty arrays, e.g. user_group_id_pairs, prefix_list_ids
+          end
         end
       end
 
