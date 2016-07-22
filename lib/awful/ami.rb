@@ -37,7 +37,7 @@ module Awful
     def ls(name = /./)
       images(options).select do |image|
         image.name.match(name)
-      end.tap do |list|
+      end.output do |list|
         if options[:long]
           print_table list.map { |i|
             [ i.name, i.image_id, i.root_device_type, color(i.state), i.creation_date, i.tags.map{ |t| "#{t.key}=#{t.value}" }.sort.join(',') ]
@@ -52,7 +52,7 @@ module Awful
     def delete(id)
       images(options).find do |image|
         image.image_id.match(id)
-      end.tap do |ami|
+      end.output do |ami|
         if yes? "Really deregister image #{ami.name} (#{ami.image_id})?", :yellow
           ec2.deregister_image(image_id: ami.image_id)
         end
@@ -61,7 +61,7 @@ module Awful
 
     desc 'dump IDS', 'describe images'
     def dump(*ids)
-      ec2.describe_images(image_ids: ids).images.tap do |images|
+      ec2.describe_images(image_ids: ids).images.output do |images|
         images.each do |image|
           puts YAML.dump(stringify_keys(image.to_hash))
         end
@@ -71,7 +71,7 @@ module Awful
     desc 'tags ID [TAGS]', 'get tags for AMI, or set multiple tags as key:value'
     def tags(id, *tags)
       if tags.empty?
-        ec2.describe_images(image_ids: [id]).images.first.tags.tap do |list|
+        ec2.describe_images(image_ids: [id]).images.first.tags.output do |list|
           print_table list.map { |t| [t.key, t.value] }
         end
       else
@@ -104,7 +104,7 @@ module Awful
         image.name.match(name)
       end.sort_by(&:creation_date).last(options[:count]).map do |image|
         image.image_id
-      end.tap do |list|
+      end.output do |list|
         puts list
       end
     end

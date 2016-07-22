@@ -56,7 +56,7 @@ module Awful
       instances.select! { |i| tag_name(i, '').match(name) } if name
 
       ## output
-      instances.tap do |list|
+      instances.output do |list|
         if options[:long]
           print_table list.map { |i|
             [
@@ -81,7 +81,7 @@ module Awful
     def dump(name)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
         instance.instance_id == name or tag_name(instance) == name
-      end.tap do |instance|
+      end.output do |instance|
         puts YAML.dump(stringify_keys(instance.to_hash))
       end
     end
@@ -106,7 +106,7 @@ module Awful
         opt[:network_interfaces] ? (opt[:network_interfaces][0][:subnet_id] = subnet) : (opt[:subnet_id] = subnet)
       end
 
-      (opt[:tags] = opt.fetch(:tags, [])).find_index { |t| t[:key] == 'Name' }.tap do |index|
+      (opt[:tags] = opt.fetch(:tags, [])).find_index { |t| t[:key] == 'Name' }.output do |index|
         opt[:tags][index || 0] = {key: 'Name', value: name}
       end
 
@@ -135,7 +135,7 @@ module Awful
       ## report DNS or IP for instance
       ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.map do |instance|
         instance.public_dns_name or instance.public_ip_address or instance.private_ip_address
-      end.tap do |list|
+      end.output do |list|
         puts list
       end
     end
@@ -143,7 +143,7 @@ module Awful
     desc 'az', 'list availability zones'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def az
-      ec2.describe_availability_zones.availability_zones.tap do |zones|
+      ec2.describe_availability_zones.availability_zones.output do |zones|
         if options[:long]
           print_table zones.map { |z| [z.zone_name, z.state, z.messages.join(',')] }
         else
@@ -154,14 +154,14 @@ module Awful
 
     desc 'allocate', 'allocate a new elastic IP address'
     def allocate
-      ec2.allocate_address(domain: 'vpc').first.tap do |eip|
+      ec2.allocate_address(domain: 'vpc').first.output do |eip|
         puts eip.allocation_id, eip.public_ip
       end
     end
 
     desc 'associate NAME IP', 'associate a public ip with an instance'
     def associate(name, eip)
-      ec2.associate_address(instance_id: find_instance(name), allocation_id: eip).map(&:association_id).tap do |id|
+      ec2.associate_address(instance_id: find_instance(name), allocation_id: eip).map(&:association_id).output do |id|
         puts id
       end
     end
@@ -170,7 +170,7 @@ module Awful
     def addresses
       ec2.describe_addresses.map(&:addresses).flatten.map do |ip|
         [ ip.allocation_id, ip.public_ip, ip.instance_id, ip.domain ]
-      end.tap do |list|
+      end.output do |list|
         print_table list
       end
     end
@@ -179,7 +179,7 @@ module Awful
     def dns(name)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
         instance.instance_id == name or (n = tag_name(instance) and n.match(name))
-      end.public_dns_name.tap do |dns|
+      end.public_dns_name.output do |dns|
         puts dns
       end
     end
@@ -189,7 +189,7 @@ module Awful
     #   opt = load_cfg(options)
     #   ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
     #     instance.instance_id == name or (n = tag_name(instance) and n.match(name))
-    #   end.tap do |instance|
+    #   end.output do |instance|
     #     ec2.modify_instance_attribute(instance_id: instance.instance_id, user_data: {
     #       #value: Base64.strict_encode64(opt[:user_data])
     #       value: opt[:user_data]
@@ -201,8 +201,8 @@ module Awful
     def user_data(name)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
         instance.instance_id == name or tag_name(instance) == name
-      end.tap do |instance|
-        ec2.describe_instance_attribute(instance_id: instance.instance_id, attribute: 'userData').user_data.value.tap do |user_data|
+      end.output do |instance|
+        ec2.describe_instance_attribute(instance_id: instance.instance_id, attribute: 'userData').user_data.value.output do |user_data|
           puts Base64.strict_decode64(user_data)
         end
       end
@@ -212,7 +212,7 @@ module Awful
     def stop(name)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
         instance.instance_id == name or (n = tag_name(instance) and n == name)
-      end.instance_id.tap do |id|
+      end.instance_id.output do |id|
         if yes? "Really stop instance #{name} (#{id})?", :yellow
           ec2.stop_instances(instance_ids: Array(id))
         end
@@ -223,7 +223,7 @@ module Awful
     def start(name)
       ec2.describe_instances.map(&:reservations).flatten.map(&:instances).flatten.find do |instance|
         instance.instance_id == name or (n = tag_name(instance) and n == name)
-      end.instance_id.tap do |id|
+      end.instance_id.output do |id|
         ec2.start_instances(instance_ids: Array(id))
       end
     end

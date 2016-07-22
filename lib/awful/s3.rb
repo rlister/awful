@@ -35,7 +35,7 @@ module Awful
     def buckets(name = /./)
       s3.list_buckets.buckets.select do |bucket|
         bucket.name.match(/#{name}/)
-      end.tap do |list|
+      end.output do |list|
         if options[:long]
           print_table list.map { |b| [ b.name, b.creation_date ] }
         else
@@ -48,7 +48,7 @@ module Awful
     def objects(bucket, prefix = nil)
       s3_resource.bucket(bucket).objects(prefix: prefix).map do |object|
         object.key
-      end.tap { |list| puts list }
+      end.output { |list| puts list }
     end
 
     desc 'exists? NAME', 'test if bucket exists'
@@ -57,12 +57,12 @@ module Awful
         s3.head_bucket(bucket: bucket_name) && true
       rescue Aws::S3::Errors::NotFound
         false
-      end.tap(&method(:puts))
+      end.output(&method(:puts))
     end
 
     desc 'empty? NAME', 'test if bucket is empty'
     def empty?(bucket_name)
-      s3.list_objects(bucket: bucket_name, max_keys: 1).contents.empty?.tap(&method(:puts))
+      s3.list_objects(bucket: bucket_name, max_keys: 1).contents.empty?.output(&method(:puts))
     end
 
     desc 'tagged [NAME_PREFIX]', 'list buckets matching given tags'
@@ -89,7 +89,7 @@ module Awful
         tags.any? do |set|
           conditions.any? { |c| c.call(set) }
         end && bucket
-      end.select{|b| b}.tap do |buckets|
+      end.select{|b| b}.output do |buckets|
         puts buckets.map(&:name)
       end
     end

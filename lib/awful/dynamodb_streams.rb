@@ -36,14 +36,14 @@ module Awful
 
     desc 'dump ARN', 'describe the stream with ARN as yaml'
     def dump(arn)
-      streams.describe_stream(stream_arn: arn).stream_description.tap do |stream|
+      streams.describe_stream(stream_arn: arn).stream_description.output do |stream|
         puts YAML.dump(stringify_keys(stream.to_hash))
       end
     end
 
     desc 'shards ARN', 'list shards for stream with ARN'
     def shards(arn)
-      streams.describe_stream(stream_arn: arn).stream_description.shards.tap do |shards|
+      streams.describe_stream(stream_arn: arn).stream_description.shards.output do |shards|
         puts shards.map(&:shard_id)
       end
     end
@@ -52,7 +52,7 @@ module Awful
     def get_records(arn, shard_id)
       iterator = streams.get_shard_iterator(stream_arn: arn, shard_id: shard_id, shard_iterator_type: 'TRIM_HORIZON').shard_iterator
 
-      streams.get_records(shard_iterator: iterator).records.tap do |records|
+      streams.get_records(shard_iterator: iterator).records.output do |records|
         print_table records.map { |r| [r.event_id, r.event_name, r.dynamodb.sequence_number, r.dynamodb.size_bytes] }
       end
     end
