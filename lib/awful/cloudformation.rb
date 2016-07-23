@@ -102,7 +102,9 @@ module Awful
       if key
         output_hash[key.to_s].output(&method(:puts))
       else
-        output_hash.output(&method(:print_table))
+        output_hash.output do |hash|
+          print_table hash.sort
+        end
       end
     end
 
