@@ -47,7 +47,7 @@ module Awful
     def certificates(name = /./)
       iam.list_server_certificates.server_certificate_metadata_list.select do |cert|
         cert.server_certificate_name.match(name)
-      end.tap do |certs|
+      end.output do |certs|
         if options[:long]
           print_table certs.map { |c|
             [
@@ -70,7 +70,7 @@ module Awful
     def roles(name = /./)
       iam.list_roles.roles.select do |role|
         role.role_name.match(name)
-      end.tap do |roles|
+      end.output do |roles|
         name_method = options[:arns] ? :arn : :role_name
         if options[:long]
           print_table roles.map { |r|
@@ -100,11 +100,11 @@ module Awful
       policies = iam.send("list_#{type}_policies", "#{type}_name".to_sym => thing_name).policy_names
 
       if policy.nil?            # just list policies
-        policies.tap(&method(:puts))
+        policies.output(&method(:puts))
       else                      #  get policy document
         policy_name = policies.find { |p| p.match(/#{policy}/i) }
         doc = iam.send("get_#{type}_policy", "#{type}_name".to_sym => thing_name, policy_name: policy_name).policy_document
-        URI.unescape(doc).tap do |str|
+        URI.unescape(doc).output do |str|
           if options[:pretty]
             puts JSON.pretty_generate(JSON.parse(str))
           else
