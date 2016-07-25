@@ -26,6 +26,22 @@ module Awful
         end
       end
     end
+
+    desc 'mfa', 'list MFA devices'
+    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    def mfa
+      iam.list_virtual_mfa_devices.virtual_mfa_devices.output do |devices|
+        if options[:long]
+          print_table devices.map { |d|
+            user_name = d.user ? d.user.user_name : '-'
+            [user_name, d.serial_number, d.enable_date]
+          }
+        else
+          puts devices.map(&:serial_number)
+        end
+      end
+    end
+
     desc 'certificates [NAME]', 'list server certificates [matching NAME]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def certificates(name = /./)
