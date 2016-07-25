@@ -8,6 +8,24 @@ module Awful
       end
     end
 
+    desc 'users', 'list users'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :mfa,  aliases: '-m', type: :boolean, default: false, desc: 'Show MFA status'
+    def users
+      iam.list_users.users.output do |users|
+        if options[:long]
+          print_table users.map { |u| [u.user_name, u.user_id, u.create_date, u.password_last_used] }
+        elsif options[:mfa]
+          mfa = iam.list_virtual_mfa_devices.virtual_mfa_devices.each_with_object({}) do |m,h|
+            next unless m.user
+            h[m.user.user_name] = m.enable_date
+          end
+          print_table users.map { |u| [u.user_name, mfa.fetch(u.user_name, '-')] }
+        else
+          puts users.map(&:user_name)
+        end
+      end
+    end
     desc 'certificates [NAME]', 'list server certificates [matching NAME]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def certificates(name = /./)
