@@ -1,3 +1,4 @@
+require 'json'
 require 'awful/dynamodb_streams'
 
 module Awful

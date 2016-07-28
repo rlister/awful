@@ -1,3 +1,5 @@
+require 'json'
+
 module Awful
   module Short
     def ecs(*args)

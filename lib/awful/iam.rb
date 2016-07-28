@@ -1,5 +1,6 @@
-module Awful
+require 'json'
 
+module Awful
   class IAM < Cli
 
     no_commands do
