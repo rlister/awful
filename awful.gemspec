@@ -22,7 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
 
   spec.add_dependency('aws-sdk', '>= 2.4.3')
-  spec.add_dependency('json')
   spec.add_dependency('thor')
   spec.add_dependency('dotenv')
 end
