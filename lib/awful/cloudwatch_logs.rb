@@ -74,7 +74,9 @@ module Awful
       end
       log_streams.output do |streams|
         if options[:long]
-          print_table streams.map { |s| [s.log_stream_name, Time.at(s.last_event_timestamp.to_i/1000)] }
+          print_table streams.map { |s|
+            [ s.log_stream_name, Time.at(s.creation_time.to_i/1000), Time.at(s.last_event_timestamp.to_i/1000) ]
+          }
         else
           puts streams.map(&:log_stream_name)
         end
