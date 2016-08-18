@@ -25,7 +25,7 @@ module Awful
       end
 
       ## return and output groups
-      log_groups.tap do |groups|
+      log_groups.output do |groups|
         if options[:long]
           print_table groups.map { |group|
             [
@@ -72,7 +72,7 @@ module Awful
         break if next_token.nil?
         break if log_streams.count >= options[:limit].to_i
       end
-      log_streams.tap do |streams|
+      log_streams.output do |streams|
         if options[:long]
           print_table streams.map { |s| [s.log_stream_name, Time.at(s.last_event_timestamp.to_i/1000)] }
         else
@@ -94,7 +94,7 @@ module Awful
 
     desc 'latest GROUP', 'get name of latest stream for GROUP'
     def latest(group)
-      latest_stream(group).tap do |stream|
+      latest_stream(group).output do |stream|
         puts stream.log_stream_name
       end
     end
