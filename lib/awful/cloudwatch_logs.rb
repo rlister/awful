@@ -84,13 +84,15 @@ module Awful
     end
 
     no_commands do
-      def latest_stream(group)
+      ## return n-th latest stream for group
+      def latest_stream(group, n = 0)
+        n = n.to_i.abs          # convert string and -ves
         logs.describe_log_streams(
           log_group_name: group,
-          order_by: 'LastEventTime',
-          descending: true,
-          limit: 1
-        ).log_streams.first
+          order_by:       'LastEventTime',
+          descending:     true,
+          limit:          n + 1
+        ).log_streams[n]
       end
     end
 
