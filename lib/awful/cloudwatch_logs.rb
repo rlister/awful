@@ -97,8 +97,8 @@ module Awful
     end
 
     desc 'latest GROUP', 'get name of latest stream for GROUP'
-    def latest(group)
-      latest_stream(group).output do |stream|
+    def latest(group, n = 0)
+      latest_stream(group, n).output do |stream|
         puts stream.log_stream_name
       end
     end
