@@ -93,6 +93,15 @@ module Awful
       end
     end
 
+    desc 'parameters NAME', 'return stack parameters as a hash'
+    def parameters(name)
+      cf.describe_stacks(stack_name: name).stacks.first.parameters.each_with_object({}) do |p, h|
+        h[p.parameter_key] = p.parameter_value
+      end.output do |hash|
+        print_table hash.sort
+      end
+    end
+
     desc 'outputs NAME [KEY]', 'get stack outputs as a ruby hash, or individual value'
     def outputs(name, key = nil)
       output_hash = cf.describe_stacks(stack_name: name).stacks.first.outputs.each_with_object({}) do |o, hash|
