@@ -104,16 +104,17 @@ module Awful
     end
 
     desc 'events GROUP [STREAM]', 'get log events from given, or latest, stream'
-    method_option :long,  aliases: '-l', type: :boolean, default: false,           desc: 'long listing including timestamps'
-    method_option :limit, aliases: '-n', type: :numeric, default: nil,             desc: 'limit results returned per page'
-    method_option :pages, aliases: '-p', type: :numeric, default: Float::INFINITY, desc: 'limit number of pages to output'
-    method_option :head,  aliases: '-H', type: :boolean, default: true,            desc: 'start from head, ie first page'
-    method_option :tail,  aliases: '-t', type: :numeric, default: nil,             desc: 'show given small number of most recent events'
-    def events(group, stream = nil)
-      stream ||= latest_stream(group).log_stream_name # use latest stream if none requested
+    method_option :long,   aliases: '-l', type: :boolean, default: false,           desc: 'long listing including timestamps'
+    method_option :stream, aliases: '-s', type: :string,  default: nil,             desc: 'specific stream to read instead of latest'
+    method_option :limit,  aliases: '-n', type: :numeric, default: nil,             desc: 'limit results returned per page'
+    method_option :pages,  aliases: '-p', type: :numeric, default: Float::INFINITY, desc: 'limit number of pages to output'
+    method_option :head,   aliases: '-H', type: :boolean, default: true,            desc: 'start from head, ie first page'
+    method_option :tail,   aliases: '-t', type: :numeric, default: nil,             desc: 'show given small number of most recent events'
+    def events(group, nth = 0)
+      opt = options.dup
+      opt[:stream] ||= latest_stream(group, nth).log_stream_name # use latest stream if none requested
 
       ## magical tail option returns up to requested number of last events
-      opt = options.dup
       if opt[:tail]
         opt[:head]  = false
         opt[:pages] = 1
@@ -126,7 +127,7 @@ module Awful
       loop do
         response = logs.get_log_events(
           log_group_name:  group,
-          log_stream_name: stream,
+          log_stream_name: opt[:stream],
           start_from_head: opt[:head],
           limit:           opt[:limit],
           next_token:      next_token,
