@@ -151,7 +151,7 @@ module Awful
     def state(name, *instances)
       elb.describe_instance_health(load_balancer_name: name, instances: instance_ids(*instances)).instance_states.output do |list|
         if options[:long]
-          print_table list.map { |i| [ i.instance_id, i.state, i.reason_code, i.description ] }
+          print_table list.map { |i| [ i.instance_id, color(i.state), i.reason_code, i.description ] }
         else
           puts list.map(&:state)
         end
