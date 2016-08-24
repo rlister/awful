@@ -115,8 +115,10 @@ module Awful
 
     ## create/update alias to ELB record; later add S3, CF, Beanstalk, rrsets
     desc 'alias NAME', 'upsert an alias to an AWS resource given by name'
-    method_option :resource, aliases: '-r', type: :string, default: 'elb', desc: 'Type of target resource, for now just `elb`'
-    method_option :type,     aliases: '-t', type: :string, default: 'A',   desc: 'Type of record: A, SOA, TXT, NS, CNAME, MX, PTR, SRV, SPF, AAAA'
+    method_option :resource,       aliases: '-r', type: :string,  default: 'elb', desc: 'Type of target resource, for now just `elb`'
+    method_option :type,           aliases: '-t', type: :string,  default: 'A',   desc: 'Type of record: A, SOA, TXT, NS, CNAME, MX, PTR, SRV, SPF, AAAA'
+    method_option :weight,         aliases: '-w', type: :numeric, default: nil,   desc: 'weight of record (requires set_identifier)'
+    method_option :set_identifier, aliases: '-s', type: :string,  default: nil,   desc: 'weighted record set unique identifier'
     def alias(name, target)
       dns_name, hosted_zone_id = send("get_#{options[:resource]}_dns", target)
       params = {
@@ -126,8 +128,10 @@ module Awful
             {
               action: 'UPSERT',
               resource_record_set: {
-                name: name,
-                type: options[:type],
+                name:           name,
+                type:           options[:type],
+                set_identifier: options[:set_identifier],
+                weight:         options[:weight],
                 alias_target: {
                   hosted_zone_id:         hosted_zone_id,
                   dns_name:               dns_name,
