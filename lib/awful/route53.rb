@@ -49,7 +49,7 @@ module Awful
     def ls(name = /./)
       route53.list_hosted_zones.hosted_zones.select do |zone|
         zone.name.match(name)
-      end.tap do |list|
+      end.output do |list|
         if options[:long]
           print_table list.map { |z| [z.name, z.id, z.resource_record_set_count, z.config.comment] }
         else
@@ -76,7 +76,7 @@ module Awful
         max_items:      options[:max_items]
       ).resource_record_sets.select do |rrset|
         include_type.call(rrset.type) and include_name.call(rrset.name)
-      end.tap do |records|
+      end.output do |records|
         if options[:long]
           print_table records.map { |r|
             dns_name = r.alias_target.nil? ? [] : ['ALIAS ' + r.alias_target.dns_name]
@@ -100,7 +100,7 @@ module Awful
         start_record_type: options[:type],
         max_items:         options[:max_items]
       }
-      route53.list_resource_record_sets(params).resource_record_sets.tap do |records|
+      route53.list_resource_record_sets(params).resource_record_sets.output do |records|
         records.each do |record|
           puts YAML.dump(stringify_keys(record.to_hash))
         end
@@ -142,7 +142,7 @@ module Awful
           ]
         }
       }
-      route53.change_resource_record_sets(params).tap do |response|
+      route53.change_resource_record_sets(params).output do |response|
         puts YAML.dump(stringify_keys(response.change_info.to_hash))
       end
     end
@@ -170,14 +170,14 @@ module Awful
           ]
         }
       }
-      route53.change_resource_record_sets(params).tap do |response|
+      route53.change_resource_record_sets(params).output do |response|
         puts YAML.dump(stringify_keys(response.change_info.to_hash))
       end
     end
 
     desc 'change ID', 'get change batch request'
     def change(id)
-      route53.get_change(id: id).change_info.tap do |info|
+      route53.get_change(id: id).change_info.output do |info|
         puts YAML.dump(stringify_keys(info.to_hash))
       end
     end
