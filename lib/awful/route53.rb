@@ -118,15 +118,17 @@ module Awful
     method_option :resource,       aliases: '-r', type: :string,  default: 'elb', desc: 'Type of target resource, for now just `elb`'
     method_option :type,           aliases: '-t', type: :string,  default: 'A',   desc: 'Type of record: A, SOA, TXT, NS, CNAME, MX, PTR, SRV, SPF, AAAA'
     method_option :weight,         aliases: '-w', type: :numeric, default: nil,   desc: 'weight of record (requires set_identifier)'
-    method_option :set_identifier, aliases: '-s', type: :string,  default: nil,   desc: 'weighted record set unique identifier'
+    method_option :set_identifier, aliases: '-s', type: :string,  default: nil,   desc: 'weighted record set unique identifier (requires weight)'
+    method_option :delete,                        type: :boolean, default: false, desc: 'delete record'
     def alias(name, target)
       dns_name, hosted_zone_id = send("get_#{options[:resource]}_dns", target)
+      action = options[:delete] ? 'DELETE' : 'UPSERT'
       params = {
         hosted_zone_id: get_zone_by_name(get_domain(name)),
         change_batch: {
           changes: [
             {
-              action: 'UPSERT',
+              action: action,
               resource_record_set: {
                 name:           name,
                 type:           options[:type],
