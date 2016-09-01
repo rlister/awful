@@ -34,7 +34,7 @@ module Awful
       arns = ecs.list_clusters.cluster_arns.select do |arn|
         arn.split('/').last.match(/#{name}/i)
       end
-      ecs.describe_clusters(clusters: arns).clusters.tap do |clusters|
+      ecs.describe_clusters(clusters: arns).clusters.output do |clusters|
         if options[:arns]
           puts arns
         elsif options[:long]
@@ -99,7 +99,7 @@ module Awful
         arns
       else
         arns.map{|a| a.split('/').last}
-      end.tap(&method(:puts))
+      end.output(&method(:puts))
     end
 
     desc 'deregister TASK_DEFINITION', 'mark a task definition as INACTIVE'
@@ -110,7 +110,7 @@ module Awful
     desc 'dump TASK', 'describe details for TASK definition'
     method_option :json, aliases: '-j', default: false, desc: 'dump as json instead of yaml'
     def dump(task)
-      ecs.describe_task_definition(task_definition: task).task_definition.to_h.tap do |hash|
+      ecs.describe_task_definition(task_definition: task).task_definition.to_h.output do |hash|
         if options[:json]
           puts JSON.pretty_generate(hash)
         else
@@ -128,7 +128,7 @@ module Awful
       if arns.empty?
         []
       elsif options[:long]
-        ecs.describe_tasks(cluster: cluster, tasks: arns).tasks.tap do |tasks|
+        ecs.describe_tasks(cluster: cluster, tasks: arns).tasks.output do |tasks|
           print_table tasks.map { |task|
             [
               task.task_arn.split('/').last,
@@ -140,13 +140,13 @@ module Awful
           }
         end
       else
-        arns.tap(&method(:puts))
+        arns.output(&method(:puts))
       end
     end
 
     desc 'status CLUSTER TASKS', 'describe status for one or more task IDs/ARNs'
     def status(cluster, *tasks)
-      ecs.describe_tasks(cluster: cluster, tasks: tasks).tasks.tap do |responses|
+      ecs.describe_tasks(cluster: cluster, tasks: tasks).tasks.output do |responses|
         responses.each do |response|
           puts YAML.dump(stringify_keys(response.to_h))
         end
@@ -167,7 +167,7 @@ module Awful
           ]
         }
       else
-        arns.tap(&method(:puts))
+        arns.output(&method(:puts))
       end
     end
 
@@ -186,14 +186,14 @@ module Awful
         overrides: container_overrides.empty? ? {} : {container_overrides: [container_overrides]}
       }
 
-      ecs.run_task(params).tap do |response|
+      ecs.run_task(params).output do |response|
         puts YAML.dump(stringify_keys(response.to_h))
       end
     end
 
     desc 'stop_task CLUSTER TASK_ID', 'stop a running task'
     def stop_task(cluster, id)
-      ecs.stop_task(cluster: cluster, task: id).task.tap do |response|
+      ecs.stop_task(cluster: cluster, task: id).task.output do |response|
         puts YAML.dump(stringify_keys(response.to_h))
       end
     end
