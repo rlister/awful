@@ -53,6 +53,13 @@ module Awful
       end
     end
 
+    desc 'create NAME', 'create a new cluster'
+    def create(name)
+      ecs.create_cluster(cluster_name: name).cluster.output do |cluster|
+        puts YAML.dump(stringify_keys(cluster.to_h))
+      end
+    end
+
     desc 'instances CLUSTER', 'list instances for CLUSTER'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def instances(cluster)
@@ -62,9 +69,9 @@ module Awful
 
         ## get hash of tags for each instance id
         tags = ec2.describe_instances(instance_ids: container_instances.map(&:ec2_instance_id)).
-               map(&:reservations).flatten.
-               map(&:instances).flatten.
-               each_with_object({}) do |i,h|
+                 map(&:reservations).flatten.
+                 map(&:instances).flatten.
+                 each_with_object({}) do |i,h|
           h[i.instance_id] = tag_name(i, '--')
         end
 
