@@ -186,6 +186,14 @@ module Awful
         puts YAML.dump(stringify_keys(response.to_h))
       end
     end
+
+    desc 'events', 'list events for given CLUSTER and SERVICE'
+    def events(cluster, service)
+      ecs.describe_services(cluster: cluster, services: [service]).services.first.events.output do |events|
+        print_table events.map { |e| [e.created_at, e.id, e.message] }
+      end
+    end
+
     desc 'run_task CLUSTER TASK_DEFINITION', 'run a task on given cluster'
     method_option :command, aliases: '-c', default: nil, desc: 'override container command as name:cmd,arg1,arg2'
     def run_task(cluster, task)
