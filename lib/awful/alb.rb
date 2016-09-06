@@ -34,6 +34,15 @@ module Awful
         end
         albs
       end
+
+      ## return ARN for named ALB
+      def get_arn(name_or_arn)
+        if name_or_arn.start_with?('arn:')
+          name_or_arn           # it is already an arn
+        else
+          describe_load_balancers(name_or_arn).first.load_balancer_arn
+        end
+      end
     end
 
     desc 'ls [NAMES]', 'list application load-balancers'
@@ -56,6 +65,20 @@ module Awful
       describe_load_balancers(*names).output do |albs|
         albs.each do |alb|
           puts YAML.dump(stringify_keys(alb.to_hash))
+        end
+      end
+    end
+
+    desc 'listeners NAME', 'list listeners for ALB with NAME'
+    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    def listeners(name)
+      alb.describe_listeners(load_balancer_arn: get_arn(name)).listeners.output do |listeners|
+        if options[:long]
+          print_table listeners.map { |l|
+            [l.protocol, l.port, l.ssl_policy, l.certificates.join(','), l.listener_arn]
+          }.sort
+        else
+          puts listeners.map(&:listener_arn)
         end
       end
     end
