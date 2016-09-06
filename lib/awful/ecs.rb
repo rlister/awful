@@ -171,6 +171,21 @@ module Awful
       end
     end
 
+    desc 'update', 'update a service'
+    method_option :desired_count,   aliases: '-d', type: :numeric, default: nil, desc: 'desired number of tasks'
+    method_option :task_definition, aliases: '-t', type: :string,  default: nil, desc: 'task def as family:revision'
+    def update(cluster, service)
+      params = {
+        cluster:         cluster,
+        service:         service,
+        desired_count:   options[:desired_count],
+        task_definition: options[:task_definition],
+      }.reject { |k,v| v.nil? }
+
+      ecs.update_service(params).service.output do |response|
+        puts YAML.dump(stringify_keys(response.to_h))
+      end
+    end
     desc 'run_task CLUSTER TASK_DEFINITION', 'run a task on given cluster'
     method_option :command, aliases: '-c', default: nil, desc: 'override container command as name:cmd,arg1,arg2'
     def run_task(cluster, task)
