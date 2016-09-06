@@ -26,7 +26,7 @@ module Awful
     desc 'ls', 'list commands'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls
-      ssm.list_commands.commands.tap do |cmds|
+      ssm.list_commands.commands.output do |cmds|
         if options[:long]
           print_table cmds.map { |c|
             [
@@ -46,7 +46,7 @@ module Awful
 
     desc 'dump ID', 'get details of command invocation for command ID'
     def dump(id)
-      ssm.list_command_invocations(command_id: id, details: true).command_invocations.tap do |cmds|
+      ssm.list_command_invocations(command_id: id, details: true).command_invocations.output do |cmds|
         cmds.each do |cmd|
           puts YAML.dump(stringify_keys(cmd.to_hash))
         end
@@ -60,7 +60,7 @@ module Awful
       filter = [{key: 'PlatformTypes', value: options[:platform_types].capitalize}]
       ssm.list_documents(document_filter_list: filter).document_identifiers.select do |doc|
         doc.name.match(/#{name}/i)
-      end.tap do |docs|
+      end.output do |docs|
         if options[:long]
           print_table docs.map { |d| [d.name, d.platform_types.join(',')] }
         else
@@ -86,7 +86,7 @@ module Awful
         parameters: {
           commands: options[:commands]
         }
-      ).tap do |response|
+      ).output do |response|
         puts response.command.command_id
       end
     end
