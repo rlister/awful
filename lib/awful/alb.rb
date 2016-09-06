@@ -70,7 +70,7 @@ module Awful
     end
 
     desc 'listeners NAME', 'list listeners for ALB with NAME'
-    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def listeners(name)
       alb.describe_listeners(load_balancer_arn: get_arn(name)).listeners.output do |listeners|
         if options[:long]
