@@ -115,5 +115,19 @@ module Awful
       end
     end
 
+    desc 'rules LISTENER', 'list rules for listener'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    def rules(listener)
+      alb.describe_rules(listener_arn: listener).rules.output do |rules|
+        if options[:long]
+          print_table rules.map { |r|
+            [r.priority, r.rule_arn]
+          }
+        else
+          puts rules.map(&:rule_arn)
+        end
+      end
+    end
+
   end
 end
