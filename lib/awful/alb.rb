@@ -83,5 +83,19 @@ module Awful
       end
     end
 
+    desc 'targets NAME', 'list target groups for ALB with NAME or ARN'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    def targets(name)
+      alb.describe_target_groups(load_balancer_arn: get_arn(name)).target_groups.output do |target_groups|
+        if options[:long]
+          print_table target_groups.map { |t|
+            [t.target_group_name, t.port, t.protocol, t.vpc_id]
+          }
+        else
+          puts target_groups.map(&:target_group_name)
+        end
+      end
+    end
+
   end
 end
