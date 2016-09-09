@@ -32,9 +32,9 @@ module Awful
     def ls
       ecr.describe_repositories.repositories.output do |repos|
         if options[:long]
-          print_table repos.map { |r| [r.repository_name, r.registry_id, r.repository_arn] }
+          print_table repos.map { |r| [r.repository_name, r.registry_id, r.repository_arn] }.sort
         else
-          puts repos.map(&:repository_name)
+          puts repos.map(&:repository_name).sort
         end
       end
     end
