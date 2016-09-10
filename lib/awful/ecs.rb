@@ -102,6 +102,31 @@ module Awful
       end.output(&method(:puts))
     end
 
+    desc 'families', 'list task definition families'
+    def families(prefix = nil)
+      next_token = nil
+      families = []
+      loop do
+        response = ecs.list_task_definition_families(family_prefix: prefix, next_token: next_token)
+        families += response.families
+        next_token = response.next_token
+        break unless next_token
+      end
+      families.output(&method(:puts))
+    end
+
+    desc 'register TASKDEF_FAMILY', 'new task definition from the given family, copying current most recent'
+    def register(family)
+      taskdef = ecs.describe_task_definition(task_definition: family).task_definition # get current newest
+      ecs.register_task_definition(
+        family: family,
+        container_definitions: taskdef.container_definitions,
+        volumes: taskdef.volumes
+      ).task_definition.output do |td|
+        puts td.task_definition_arn
+      end
+    end
+
     desc 'deregister TASK_DEFINITION', 'mark a task definition as INACTIVE'
     def deregister(task)
       ecs.deregister_task_definition(task_definition: task)
