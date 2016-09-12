@@ -207,9 +207,7 @@ module Awful
         task_definition: options[:task_definition],
       }.reject { |k,v| v.nil? }
 
-      ecs.update_service(params).service.output do |response|
-        puts YAML.dump(stringify_keys(response.to_h))
-      end
+      ecs.update_service(params).service
     end
 
     desc 'events', 'list events for given CLUSTER and SERVICE'
