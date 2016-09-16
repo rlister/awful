@@ -43,28 +43,6 @@ module Awful
       end
     end
 
-    desc 'certificates [NAME]', 'list server certificates [matching NAME]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def certificates(name = /./)
-      iam.list_server_certificates.server_certificate_metadata_list.select do |cert|
-        cert.server_certificate_name.match(name)
-      end.output do |certs|
-        if options[:long]
-          print_table certs.map { |c|
-            [
-              c.server_certificate_name,
-              c.server_certificate_id,
-              c.arn,
-              c.upload_date,
-              c.expiration,
-            ]
-          }.sort
-        else
-          puts certs.map(&:server_certificate_name).sort
-        end
-      end
-    end
-
     desc 'roles [NAME]', 'list IAM roles [matching NAME]'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     method_option :arns, aliases: '-a', default: false, desc: 'Show ARNs instead of names'
