@@ -1,0 +1,10 @@
+#!/usr/bin/ruby
+#-*- mode: ruby; -*-
+
+require 'awful'
+require 'awful/waf'
+require 'awful/waf_acl'
+require 'awful/waf_rule'
+require 'awful/waf_ipset'
+
+Awful::WAF::Base.start(ARGV)
