@@ -19,7 +19,21 @@ module Awful
           end
           things
         end
+
+        def change_token
+          waf.get_change_token.change_token
+        end
       end
+
+      desc 'change [ID]', 'get or view change token'
+      def change(token = nil)
+        if token
+          waf.get_change_token_status(change_token: token).change_token_status.output(&method(:puts))
+        else
+          waf.get_change_token.change_token.output(&method(:puts))
+        end
+      end
+
     end
 
   end
