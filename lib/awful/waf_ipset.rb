@@ -59,4 +59,4 @@ module Awful
     end
 
   end
- end
+end
