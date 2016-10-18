@@ -56,6 +56,13 @@ module Awful
       end
     end
 
+    desc 'status ID', 'show status for distribution'
+    def status(id)
+      cloudfront.get_distribution(id: id).distribution.status.output do |status|
+        puts color(status)
+      end
+    end
+
     desc 'aliases ID [LIST]', 'get/set aliases for distribution'
     method_option :add,    aliases: '-a', type: :boolean, default: false, desc: 'add list to existing aliases'
     method_option :delete, aliases: '-d', type: :boolean, default: false, desc: 'delete list from existing aliases'
