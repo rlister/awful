@@ -8,8 +8,10 @@ module Awful
   class CloudFront < Cli
 
     COLORS = {
-      enabled:  :green,
-      disabled: :red,
+      enabled:    :green,
+      disabled:   :red,
+      deployed:   :green,
+      inprogress: :yellow,
     }
 
     no_commands do
@@ -39,7 +41,7 @@ module Awful
           print_table list.map { |i|
             origins = i.origins.items.map(&:domain_name).join(',')
             state = i.enabled ? :Enabled : :Disabled
-            [ i.id, i.domain_name, origins, i.status, color(state), i.last_modified_time ]
+            [ i.id, i.domain_name, origins, color(i.status), color(state), i.last_modified_time ]
           }
         else
           puts list.map(&:id).sort
