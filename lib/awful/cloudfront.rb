@@ -39,9 +39,9 @@ module Awful
       items.output do |list|
         if options[:long]
           print_table list.map { |i|
-            origins = i.origins.items.map(&:domain_name).join(',')
+            origins = i.origins.items.map(&:domain_name).join(',').slice(0..40)
             state = i.enabled ? :Enabled : :Disabled
-            [ i.id, i.domain_name, origins, color(i.status), color(state), i.last_modified_time ]
+            [ i.id, i.domain_name, i.comment, origins, color(i.status), color(state), i.last_modified_time ]
           }
         else
           puts list.map(&:id).sort
