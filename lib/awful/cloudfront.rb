@@ -49,6 +49,13 @@ module Awful
       end
     end
 
+    desc 'get ID', 'dump out config for distribution'
+    def get(id)
+      cloudfront.get_distribution(id: id).distribution.output do |dist|
+        puts YAML.dump(stringify_keys(dist.to_hash))
+      end
+    end
+
     desc 'origins ID', 'list origins for distribution with ID'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def origins(id)
