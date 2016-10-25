@@ -84,5 +84,13 @@ module Awful
       end
     end
 
+    desc 'policy ID', 'get key policy'
+    method_option :name, aliases: '-n', type: :string, default: :default, desc: 'policy name'
+    def policy(id)
+      kms.get_key_policy(key_id: id_or_alias(id), policy_name: options[:name]).policy.output do |policy|
+        puts policy
+      end
+    end
+
   end
 end
