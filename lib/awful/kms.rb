@@ -7,8 +7,8 @@ module Awful
 
   class Kms < Cli
     COLORS = {
-      enabled:  :green,
-      disabled: :red,
+      Enabled:         :green,
+      PendingDeletion: :red,
     }
 
     no_commands do
@@ -69,7 +69,7 @@ module Awful
         if options[:long]
           print_table keys.map { |k|
             key = kms.describe_key(key_id: k.key_id).key_metadata
-            [ aliases_hash.fetch(k.key_id, '-'), k.key_id, color(key.enabled ? 'enabled' : 'disabled'), key.creation_date ]
+            [ aliases_hash.fetch(k.key_id, '-'), k.key_id, color(key.key_state), key.creation_date ]
           }.sort
         else
           puts keys.map(&:key_id)
