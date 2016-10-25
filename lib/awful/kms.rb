@@ -32,12 +32,31 @@ module Awful
         things
       end
 
-      def aliases_hash
-        @_aliases_hash ||= paginate(:aliases) do |marker|
+      def aliases
+        paginate(:aliases) do |marker|
           kms.list_aliases(marker: marker)
-        end.each_with_object({}) do |a, h|
+        end
+      end
+
+      def aliases_hash
+        @_aliases_hash ||= aliases.each_with_object({}) do |a, h|
           h[a.target_key_id] = a.alias_name.gsub(/^alias\//, '')
         end
+      end
+
+      ## return target id for alias
+      def alias_by_name(name)
+        aliases.find do |a|
+          a.alias_name == "alias/#{name}"
+        end.target_key_id
+      end
+
+      def is_uuid?(id)
+        id.match(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i)
+      end
+
+      def id_or_alias(id)
+        is_uuid?(id) ? id : alias_by_name(id)
       end
     end
 
@@ -55,6 +74,13 @@ module Awful
         else
           puts keys.map(&:key_id)
         end
+      end
+    end
+
+    desc 'get ID', 'describe KMS key with ID'
+    def get(id)
+      kms.describe_key(key_id: id_or_alias(id)).key_metadata.output do |key|
+        puts YAML.dump(stringify_keys(key.to_hash))
       end
     end
 
