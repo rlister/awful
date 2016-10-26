@@ -94,11 +94,24 @@ module Awful
       end
     end
 
+    ## deprecated in favour of get below
     desc 'cat BUCKET/OBJECT', 'stream s3 object to stdout'
     def cat(path)
       bucket, key = path.split('/', 2)
       s3.get_object(bucket: bucket, key: key) do |chunk|
         $stdout.write(chunk)
+      end
+    end
+
+    ## new version of cat
+    desc 'get BUCKET OBJECT [FILENAME]', 'get object from bucket'
+    def get(bucket, key, filename = nil)
+      if filename
+        s3.get_object(bucket: bucket, key: key, response_target: filename)
+      else
+        s3.get_object(bucket: bucket, key: key).output do |response|
+          puts response.body.read
+        end
       end
     end
 
