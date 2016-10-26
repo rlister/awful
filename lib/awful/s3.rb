@@ -102,10 +102,27 @@ module Awful
       end
     end
 
+    ## deprecated in favour of put below
     desc 'upload FILE BUCKET/OBJECT', 'upload FILE to given object'
     def upload(file, s3path)
       bucket, key = s3path.split('/', 2)
       s3_resource.bucket(bucket).object(key).upload_file(file)
+    end
+
+    ## this is the new version of upload
+    desc 'put BUCKET/OBJECT [FILE]', 'put object in bucket from file/stdin/string'
+    method_option :string, aliases: '-s', type: :string, default: nil, desc: 'send string instead of reading a file'
+    method_option :kms,    aliases: '-k', type: :string, default: nil, desc: 'KMS key ID for encryption'
+    def put(s3path, filename = nil)
+      bucket, key = s3path.split('/', 2)
+      body = options.fetch('string', file_or_stdin(filename))
+      s3.put_object(
+        bucket: bucket,
+        key: key,
+        body: body,
+        server_side_encryption: options[:kms] ? 'aws:kms' : nil,
+        ssekms_key_id: options[:kms],
+      )
     end
 
     desc 'remove_bucket NAME', 'delete a bucket, which must be empty'
