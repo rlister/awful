@@ -110,11 +110,10 @@ module Awful
     end
 
     ## this is the new version of upload
-    desc 'put BUCKET/OBJECT [FILE]', 'put object in bucket from file/stdin/string'
+    desc 'put BUCKET OBJECT [FILENAME]', 'put object in bucket from file/stdin/string'
     method_option :string, aliases: '-s', type: :string, default: nil, desc: 'send string instead of reading a file'
     method_option :kms,    aliases: '-k', type: :string, default: nil, desc: 'KMS key ID for encryption'
-    def put(s3path, filename = nil)
-      bucket, key = s3path.split('/', 2)
+    def put(bucket, key, filename = nil)
       body = options.fetch('string', file_or_stdin(filename))
       s3.put_object(
         bucket: bucket,
