@@ -137,6 +137,19 @@ module Awful
       )
     end
 
+    desc 'copy BUCKET OBJECT', 'copy object from source bucket/object'
+    method_option :source, aliases: '-s', type: :string, default: nil, desc: 'source as bucket/object'
+    method_option :kms,    aliases: '-k', type: :string, default: nil, desc: 'KMS key ID for encryption'
+    def copy(bucket, key)
+      s3.copy_object(
+        bucket: bucket,
+        key: key,
+        server_side_encryption: options[:kms] ? 'aws:kms' : nil,
+        ssekms_key_id: options[:kms],
+        copy_source: options[:source],
+      )
+    end
+
     desc 'remove_bucket NAME', 'delete a bucket, which must be empty'
     def remove_bucket(name)
       if yes? "Really delete bucket #{name}?", :yellow
