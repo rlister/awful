@@ -174,5 +174,15 @@ module Awful
         clean_objects(name)
       end
     end
+
+    desc 'delete BUCKET OBJECTS', 'delete objects from bucket'
+    def delete(bucket, *objects)
+      s3.delete_objects(
+        bucket: bucket,
+        delete: {
+          objects: objects.map{ |k| {key: k} }
+        }
+      )
+    end
   end
 end
