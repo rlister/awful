@@ -1,3 +1,5 @@
+require 'base64'
+
 module Awful
   module Short
     def kms(*args)
@@ -90,6 +92,18 @@ module Awful
       kms.get_key_policy(key_id: id_or_alias(id), policy_name: options[:name]).policy.output do |policy|
         puts policy
       end
+    end
+
+    desc 'encrypt ID', 'encrypt data using KMS key'
+    def encrypt(id, data)
+      blob = kms.encrypt(key_id: id, plaintext: data).ciphertext_blob
+      puts Base64.encode64(blob)
+    end
+
+    desc 'decrypt', 'decrypt'
+    def decrypt(data)
+      key = Base64.decode64(data)
+      puts kms.decrypt(ciphertext_blob: key)
     end
 
   end
