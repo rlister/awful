@@ -77,9 +77,9 @@ module Awful
       end
     end
 
-    desc 'tags NAME', 'dump tags on all ELBs matching NAME (up to 20)'
-    def tags(name)
-      elb.describe_tags(load_balancer_names: all_matching_elbs(name).map(&:load_balancer_name)).tag_descriptions.output do |tags|
+    desc 'tags NAMES', 'dump tags for ELBs'
+    def tags(*names)
+      elb.describe_tags(load_balancer_names: names).tag_descriptions.output do |tags|
         tags.each do |tag|
           puts YAML.dump(stringify_keys(tag.to_hash))
         end
