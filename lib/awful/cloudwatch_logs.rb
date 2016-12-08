@@ -15,17 +15,9 @@ module Awful
     desc 'ls [PREFIX]', 'list log groups'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
     def ls(prefix = nil)
-      next_token = nil
-      log_groups = []
-      loop do
-        response = logs.describe_log_groups(log_group_name_prefix: prefix, next_token: next_token)
-        log_groups = log_groups + response.log_groups
-        next_token = response.next_token
-        break if next_token.nil?
-      end
-
-      ## return and output groups
-      log_groups.output do |groups|
+      paginate(:log_groups) do |token|
+        logs.describe_log_groups(log_group_name_prefix: prefix, next_token: token)
+      end.output do |groups|
         if options[:long]
           print_table groups.map { |group|
             [
