@@ -22,17 +22,17 @@ module Awful
         set_color(string, COLORS.fetch(string.to_sym, :yellow))
       end
 
-      def paginate(thing)
-        next_marker = nil
-        things = []
-        loop do
-          response = yield(next_marker)
-          things += response.send(thing)
-          next_marker = response.next_marker
-          break unless next_marker
-        end
-        things
-      end
+      # def paginate(thing)
+      #   next_marker = nil
+      #   things = []
+      #   loop do
+      #     response = yield(next_marker)
+      #     things += response.send(thing)
+      #     next_marker = response.next_marker
+      #     break unless next_marker
+      #   end
+      #   things
+      # end
 
       def aliases
         paginate(:aliases) do |marker|

@@ -164,6 +164,19 @@ module Awful
         end
       end
 
+      ## universal paginator for aws-sdk calls
+      def paginate(thing)
+        token = nil
+        things = []
+        loop do
+          resp = yield(token)
+          things += resp.send(thing)
+          ## some apis use marker, some use token
+          token = resp.respond_to?(:next_marker) ? resp.next_marker : resp.next_token
+          break if token.nil?
+        end
+        things
+      end
     end
   end
 end
