@@ -10,6 +10,15 @@ module Awful
       def logs
         @logs ||= Aws::CloudWatchLogs::Client.new
       end
+
+      ## human-readable timestamp
+      def human_time(timestamp)
+        if timestamp.nil?
+          '-'
+        else
+          Time.at(timestamp.to_i/1000)
+        end
+      end
     end
 
     desc 'ls [PREFIX]', 'list log groups'
@@ -23,7 +32,7 @@ module Awful
             [
               group.log_group_name,
               group.retention_in_days,
-              Time.at(group.creation_time.to_i/1000),
+              human_time(group.creation_time),
               group.stored_bytes,
             ]
           }
@@ -67,7 +76,7 @@ module Awful
       log_streams.output do |streams|
         if options[:long]
           print_table streams.map { |s|
-            [ s.log_stream_name, Time.at(s.creation_time.to_i/1000), Time.at(s.last_event_timestamp.to_i/1000) ]
+            [ s.log_stream_name, human_time(s.creation_time), human_time(s.last_event_timestamp) ]
           }
         else
           puts streams.map(&:log_stream_name)
