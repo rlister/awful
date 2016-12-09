@@ -53,27 +53,20 @@ module Awful
     end
 
     desc 'streams GROUP [PREFIX]', 'list log streams for GROUP'
-    method_option :long,  aliases: '-l', default: false, desc: 'Long listing'
-    method_option :limit, aliases: '-n', default: 50,    desc: 'Count to limit returned results'
-    method_option :alpha, aliases: '-a', default: false, desc: 'Order by name'
+    method_option :long,  aliases: '-l', default: false, desc: 'long listing'
+    method_option :limit, aliases: '-n', default: 50,    desc: 'limit number of results per page call'
+    method_option :alpha, aliases: '-a', default: false, desc: 'order by name'
     def streams(group, prefix = nil)
-      next_token = nil
-      log_streams = []
-      loop do
-        response = logs.describe_log_streams(
+      paginate(:log_streams) do |token|
+        logs.describe_log_streams(
           log_group_name: group,
           log_stream_name_prefix: prefix,
           order_by: options[:alpha] ? 'LogStreamName' : 'LastEventTime',
           descending: (not options[:alpha]), # want desc order if by time for most recent first
           limit: options[:limit],
-          next_token: next_token
+          next_token: token,
         )
-        log_streams = log_streams + response.log_streams
-        next_token = response.next_token
-        break if next_token.nil?
-        break if log_streams.count >= options[:limit].to_i
-      end
-      log_streams.output do |streams|
+      end.output do |streams|
         if options[:long]
           print_table streams.map { |s|
             [ s.log_stream_name, human_time(s.creation_time), human_time(s.last_event_timestamp) ]
@@ -146,7 +139,7 @@ module Awful
 
       events.output do |ev|
         if options[:long]
-          print_table ev.map { |e| [Time.at(e.timestamp.to_i/1000), e.message] }
+          print_table ev.map { |e| [human_time(e.timestamp), e.message] }
         else
           puts ev.map(&:message)
         end
