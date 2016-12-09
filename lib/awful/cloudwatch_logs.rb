@@ -1,3 +1,5 @@
+require 'time'
+
 module Awful
   module Short
     def cwlogs(*args)
@@ -146,5 +148,62 @@ module Awful
       end
     end
 
+    desc 'filter GROUP [STREAMS]', 'filter'
+    method_option :pattern, aliases: '-p', type: :string, default: nil, desc: 'pattern to filter logs'
+    method_option :start,   aliases: '-s', type: :string, default: nil, desc: 'start time'
+    method_option :end,     aliases: '-e', type: :string, default: nil, desc: 'end time'
+    def filter(group, *streams)
+      start_time = options[:start] ? Time.parse(options[:start]).to_i*1000 : nil
+      end_time   = options[:end]   ? Time.parse(options[:end]).to_i*1000   : nil
+      token = nil
+      loop do
+        resp = logs.filter_log_events(
+          log_group_name: group,
+          log_stream_names: streams.empty? ? nil : streams,
+          next_token: token,
+          start_time: start_time,
+          end_time: end_time,
+          filter_pattern: options[:pattern],
+        )
+        resp.events.each do |e|
+          time   = set_color(human_time(e.timestamp).utc, :green)
+          stream = set_color(e.log_stream_name, :blue)
+          puts("#{time}  #{stream}  #{e.message}")
+        end
+        token = resp.next_token
+        break unless token
+      end
+    end
+
+    desc 'tail GROUP [STREAMS]', 'tail log group streams'
+    method_option :numlines, aliases: '-n', type: :numeric, default: 10,    desc: 'number of lines to show'
+    method_option :follow,   aliases: '-f', type: :boolean, default: false, desc: 'follow log output'
+    method_option :sleep,    aliases: '-s', type: :numeric, default: 3,     desc: 'seconds to sleep between poll for new data'
+    method_option :timestamp,               type: :boolean, default: true,  desc: 'show timestamp for each line'
+    def tail(group, stream)
+      trap('SIGINT', 'EXIT')    # expect to exit with ctrl-c
+
+      ## how to print each line
+      out = if options[:timestamp]
+        ->(e) { puts("#{set_color(human_time(e.timestamp).utc, :green)}  #{e.message}") }
+      else
+        ->(e) { puts e.message }
+      end
+
+      token = nil
+      loop do
+        resp = logs.get_log_events(
+          log_group_name: group,
+          log_stream_name: stream,
+          limit: options[:numlines],
+          next_token: token,
+        )
+        resp.events.each do |e|
+          out.call(e)
+        end
+        token = resp.next_forward_token
+        options[:follow] ? sleep(options[:sleep]) : break
+      end
+    end
   end
 end
