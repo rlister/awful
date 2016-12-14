@@ -205,5 +205,21 @@ module Awful
         options[:follow] ? sleep(options[:sleep]) : break
       end
     end
+
+    desc 'head', 'get log events starting from head of stream'
+    method_option :numlines, aliases: '-n', type: :numeric, default: 10,    desc: 'number of lines to show'
+    method_option :timestamp,               type: :boolean, default: true,  desc: 'show timestamp for each line'
+    def head(group, stream)
+      out = options[:timestamp] ? ->(e) { puts("#{set_color(human_time(e.timestamp).utc, :green)}  #{e.message}") } : ->(e) { puts e.message }
+
+      logs.get_log_events(
+        log_group_name: group,
+        log_stream_name: stream,
+        limit: options[:numlines],
+        start_from_head: true,
+      ).events.each do |e|
+        out.call(e)
+      end
+    end
   end
 end
