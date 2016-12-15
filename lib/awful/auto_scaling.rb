@@ -124,13 +124,12 @@ module Awful
           puts instances.map(&:public_ip_address)
         end
       end
-
     end
 
     desc 'ssh NAME [ARGS]', 'ssh to an instance for this autoscaling group'
-    method_option :all,        aliases: '-a', default: false, desc: 'ssh to all instances'
-    method_option :number,     aliases: '-n', default: 1,     desc: 'number of instances to ssh'
-    method_option :login_name, aliases: '-l', default: nil,   desc: 'login name to pass to ssh'
+    method_option :all,        aliases: '-a', type: :boolean, default: false, desc: 'ssh to all instances'
+    method_option :number,     aliases: '-n', type: :numeric, default: 1,     desc: 'number of instances to ssh'
+    method_option :login_name, aliases: '-l', type: :string,  default: nil,   desc: 'login name to pass to ssh'
     method_option :instances,  aliases: '-i', type: :array,   default: nil,   desc: 'list of partial instance IDs to filter'
     method_option :verbose,    aliases: '-v', type: :boolean, default: false, desc: 'show IPs before running ssh'
     def ssh(name, *args)
