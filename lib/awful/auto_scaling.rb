@@ -132,6 +132,7 @@ module Awful
     method_option :number,     aliases: '-n', default: 1,     desc: 'number of instances to ssh'
     method_option :login_name, aliases: '-l', default: nil,   desc: 'login name to pass to ssh'
     method_option :instances,  aliases: '-i', type: :array,   default: nil,   desc: 'list of partial instance IDs to filter'
+    method_option :verbose,    aliases: '-v', type: :boolean, default: false, desc: 'show IPs before running ssh'
     def ssh(name, *args)
       instances = asg_instance_details(name)
 
@@ -146,6 +147,7 @@ module Awful
       num = options[:all] ? ips.count : options[:number].to_i
       login_name = options[:login_name] ? "-l #{options[:login_name]}" : ''
       ips.last(num).each do |ip|
+        puts ip if options[:verbose]
         system "ssh #{login_name} #{ip} #{Array(args).join(' ')}"
       end
     end
