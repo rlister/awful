@@ -131,8 +131,16 @@ module Awful
     method_option :all,        aliases: '-a', default: false, desc: 'ssh to all instances'
     method_option :number,     aliases: '-n', default: 1,     desc: 'number of instances to ssh'
     method_option :login_name, aliases: '-l', default: nil,   desc: 'login name to pass to ssh'
+    method_option :instances,  aliases: '-i', type: :array,   default: nil,   desc: 'list of partial instance IDs to filter'
     def ssh(name, *args)
       instances = asg_instance_details(name)
+
+      ## filter by list of instance id patterns
+      if options[:instances]
+        instances.select! do |i|
+          options[:instances].map{ |pattern| i.instance_id.match(pattern) }.any?
+        end
+      end
 
       ips = instances.map(&:public_ip_address)
       num = options[:all] ? ips.count : options[:number].to_i
