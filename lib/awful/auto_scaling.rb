@@ -38,6 +38,17 @@ module Awful
         end
       end
 
+      ## return instances for named ASGs
+      def asg_instances(*names)
+        autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).auto_scaling_groups.map(&:instances).flatten
+      end
+
+      ## lookup ec2 details for instances in named ASGs
+      def asg_instance_details(*names)
+        ids = asg_instances(*names).map(&:instance_id)
+        ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time)
+      end
+
       def instance_lifecycle_state(*instance_ids)
         autoscaling.describe_auto_scaling_instances(instance_ids: instance_ids).auto_scaling_instances.map(&:lifecycle_state)
       end
@@ -76,7 +87,7 @@ module Awful
     method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     method_option :describe, aliases: '-d', type: :boolean, default: false, desc: 'make extra call to get ASG name for each instance'
     def instances(*names)
-      instances = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).auto_scaling_groups.map(&:instances).flatten
+      instances = asg_instances(*names)
 
       ## make extra call to get asg name as part of object
       if options[:describe]
@@ -101,14 +112,10 @@ module Awful
       end
     end
 
-    desc 'ips NAME', 'list IPs for instances in groups matching NAME'
+    desc 'ips NAMES', 'list IPs for instances in named groups'
     method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    def ips(name)
-      ## get instance IDs for matching ASGs
-      ids = all_matching_asgs(name).map(&:instances).flatten.map(&:instance_id)
-
-      ## get instance details for these IDs
-      ec2.describe_instances(instance_ids: ids).map(&:reservations).flatten.map(&:instances).flatten.sort_by(&:launch_time).output do |instances|
+    def ips(*names)
+      asg_instance_details(*names).output do |instances|
         if options[:long]
           print_table instances.map { |i|
             [ i.public_ip_address, i.private_ip_address, i.instance_id, i.image_id, i.instance_type, i.placement.availability_zone, color(i.state.name), i.launch_time ]
@@ -125,7 +132,9 @@ module Awful
     method_option :number,     aliases: '-n', default: 1,     desc: 'number of instances to ssh'
     method_option :login_name, aliases: '-l', default: nil,   desc: 'login name to pass to ssh'
     def ssh(name, *args)
-      ips = ips(name).map(&:public_ip_address)
+      instances = asg_instance_details(name)
+
+      ips = instances.map(&:public_ip_address)
       num = options[:all] ? ips.count : options[:number].to_i
       login_name = options[:login_name] ? "-l #{options[:login_name]}" : ''
       ips.last(num).each do |ip|
