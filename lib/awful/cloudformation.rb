@@ -117,6 +117,11 @@ module Awful
       end
     end
 
+    desc 'status NAME', 'get stack status'
+    def status(name)
+      cf.describe_stacks(stack_name: name).stacks.first.stack_status.output(&method(:puts))
+    end
+
     desc 'template NAME', 'get template for stack named NAME'
     def template(name)
       cf.get_template(stack_name: name).template_body.output do |template|
