@@ -94,23 +94,16 @@ module Awful
       next_token = token
       tag_status = 'TAGGED'   if options[:tagged]
       tag_status = 'UNTAGGED' if options[:untagged]
-      images = []
-      loop do
-        response = ecr.list_images(
-          repository_name: repository,
-          next_token: next_token,
-          filter: { tag_status: tag_status },
-        )
-        images = images + response.image_ids
-        next_token = response.next_token
-        break unless next_token
-      end
 
-      images.output do |list|
+      paginate(:image_ids) do |next_token|
+        ecr.list_images(
+          repository_name: repository,
+          filter: { tag_status: tag_status },
+          next_token: next_token,
+        )
+      end.output do |list|
         if options[:long]
-          print_table list.map { |i|
-            [i.image_tag, i.image_digest]
-          }
+          print_table list.map { |i| [i.image_tag, i.image_digest] }
         else
           puts list.map(&:image_tag)
         end
