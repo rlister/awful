@@ -87,12 +87,20 @@ module Awful
     end
 
     desc 'images REPO', 'list images for repo'
-    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :tagged,   aliases: '-t', type: :boolean, default: false, desc: 'show only tagged images'
+    method_option :untagged, aliases: '-u', type: :boolean, default: false, desc: 'show only untagged images'
     def images(repository, token: nil)
       next_token = token
+      tag_status = 'TAGGED'   if options[:tagged]
+      tag_status = 'UNTAGGED' if options[:untagged]
       images = []
       loop do
-        response = ecr.list_images(repository_name: repository, next_token: next_token)
+        response = ecr.list_images(
+          repository_name: repository,
+          next_token: next_token,
+          filter: { tag_status: tag_status },
+        )
         images = images + response.image_ids
         next_token = response.next_token
         break unless next_token
