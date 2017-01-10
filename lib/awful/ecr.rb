@@ -25,6 +25,16 @@ module Awful
       def parse_created(image)
         JSON.parse(JSON.parse(image.image_manifest)['history'].first['v1Compatibility'])['created']
       end
+
+      def describe_images(repository, tag_status = nil)
+        paginate(:image_details) do |next_token|
+          ecr.describe_images(
+            repository_name: repository,
+            filter: { tag_status: tag_status },
+            next_token: next_token,
+          )
+        end
+      end
     end
 
     desc 'ls', 'list commands'
@@ -90,22 +100,19 @@ module Awful
     method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     method_option :tagged,   aliases: '-t', type: :boolean, default: false, desc: 'show only tagged images'
     method_option :untagged, aliases: '-u', type: :boolean, default: false, desc: 'show only untagged images'
-    def images(repository, token: nil)
-      next_token = token
+    def images(repository)
       tag_status = 'TAGGED'   if options[:tagged]
       tag_status = 'UNTAGGED' if options[:untagged]
 
-      paginate(:image_ids) do |next_token|
-        ecr.list_images(
-          repository_name: repository,
-          filter: { tag_status: tag_status },
-          next_token: next_token,
-        )
-      end.output do |list|
+      describe_images(repository, tag_status).output do |list|
         if options[:long]
-          print_table list.map { |i| [i.image_tag, i.image_digest] }
+          print_table list.map { |i|
+            tags = i.image_tags || []
+            size = "%.2f MiB" % (i.image_size_in_bytes/(1024*1024))
+            [tags.join(','), i.image_pushed_at, size, i.image_digest]
+          }
         else
-          puts list.map(&:image_tag)
+          puts list.map(&:image_tags).flatten
         end
       end
     end
@@ -147,7 +154,7 @@ module Awful
       (imgs.empty? ? false : true).output(&method(:puts))
     end
 
-    desc 'reap REPO', 'reap old images for repo'
+    desc 'reap REPO DAYS', 'reap old images for repo'
     method_option :batch,   aliases: '-b', type: :numeric, default: 10,    desc: 'batch size to get and delete'
     method_option :dry_run, aliases: '-d', type: :boolean, default: false, desc: 'dry run, do not delete, implies verbose'
     method_option :verbose, aliases: '-v', type: :boolean, default: false, desc: 'print images to be deleted'
