@@ -21,11 +21,6 @@ module Awful
         end
       end
 
-      ## parse created date from manifest of Aws::ECR::Types::Image object
-      def parse_created(image)
-        JSON.parse(JSON.parse(image.image_manifest)['history'].first['v1Compatibility'])['created']
-      end
-
       def describe_images(repository, tag_status = nil)
         paginate(:image_details) do |next_token|
           ecr.describe_images(
@@ -165,15 +160,13 @@ module Awful
 
       deleted = failures = 0
       loop do
-        ## get a batch of image ids
-        response = ecr.list_images(repository_name: repository, next_token: next_token, max_results: options[:batch])
+        response = ecr.describe_images(repository_name: repository, next_token: next_token, max_results: options[:batch])
 
-        ## get details for the batch of images and calculate age
-        old_images = ecr.batch_get_image(repository_name: repository, image_ids: response.image_ids).images.select do |image|
-          date = Time.parse(parse_created(image)).utc
+        old_images = response.image_details.select do |image|
+          date = image.image_pushed_at.utc
           age = ((now - date)/(24*60*60)).to_i
           if age > days.to_i
-            puts "#{date} #{age} #{image.image_id.image_tag}" if verbose
+            puts "#{date} #{age} #{image.image_digest} #{image.image_tags}" if verbose
             true
           else
             false
@@ -182,7 +175,10 @@ module Awful
 
         ## delete old images
         unless options[:dry_run] || old_images.empty?
-          r = ecr.batch_delete_image(repository_name: repository, image_ids: old_images.map(&:image_id))
+          r = ecr.batch_delete_image(
+            repository_name: repository,
+            image_ids: old_images.map { |i| {image_digest: i.image_digest} }
+          )
           deleted  += r.image_ids.count
           failures += r.failures.count
         end
