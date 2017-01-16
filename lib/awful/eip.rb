@@ -6,6 +6,16 @@ module Awful
   end
 
   class Eip < Cli
+    no_commands do
+
+      ## get an EIP by id or public ip
+      def find_eip(thing)
+        ec2.describe_addresses.addresses.find do |eip|
+          (thing == eip.public_ip) || (thing == eip.allocation_id)
+        end
+      end
+    end
+
     desc 'ls', 'list elastic IPs'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def ls
@@ -19,5 +29,27 @@ module Awful
         end
       end
     end
+
+    desc 'allocate', 'acquire an elastic IP'
+    method_option :domain, aliases: '-d', type: :string, default: 'vpc', desc: 'domain: vpc or standard (ec2 classic)'
+    def allocate
+      ec2.allocate_address(domain: options[:domain]).output do |eip|
+        puts eip.public_ip
+      end
+    end
+
+    desc 'release ID', 'release elastic IP back to pool'
+    def release(id)
+      find_eip(id).tap do |eip|
+        unless eip.nil?
+          if eip.domain == 'vpc'
+            ec2.release_address(allocation_id: eip.allocation_id)
+          else
+            ec2.release_address(public_ip: eip.public_ip)
+          end
+        end
+      end
+    end
+
   end
 end
