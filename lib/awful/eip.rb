@@ -13,7 +13,7 @@ module Awful
         if options[:long]
           print_table eips.map { |i|
             [i.public_ip, i.allocation_id, i.instance_id, i.private_ip_address, i.domain, i.network_interface_id, i.network_interface_owner_id]
-          }
+          }.sort
         else
           puts eips.map(&:public_ip).sort
         end
