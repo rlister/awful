@@ -51,5 +51,17 @@ module Awful
       end
     end
 
+    desc 'associate ID INSTANCE', 'associate EIP with an instance'
+    def associate(id, instance)
+      ec2.associate_address(
+        allocation_id: find_eip(id).allocation_id,
+        instance_id: instance
+      ).association_id.output(&method(:puts))
+    end
+
+    desc 'disassociate ID', 'disassociate EIP from current instance association'
+    def disassociate(id)
+      ec2.disassociate_address(association_id: find_eip(id).association_id)
+    end
   end
 end
