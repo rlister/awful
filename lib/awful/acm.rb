@@ -53,6 +53,18 @@ module Awful
       end
     end
 
+    desc 'get CERT', 'get ACM cert and chain'
+    method_option :chain, type: :boolean, default: false, desc: 'print cert chain instead of cert'
+    def get(n)
+      acm.get_certificate(certificate_arn: find_cert(n).certificate_arn).output do |cert|
+        if options[:chain]
+          puts cert.certificate_chain
+        else
+          puts cert.certificate
+        end
+      end
+    end
+
     desc 'delete CERT', 'delete certificate from ACM'
     def delete(n)
       acm.delete_certificate(certificate_arn: find_cert(n).certificate_arn)
