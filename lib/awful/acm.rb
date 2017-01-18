@@ -8,21 +8,7 @@ module Awful
   end
 
   class Acm < Cli
-    # COLORS = {
-    #   active:       :green,
-    #   provisioning: :yellow,
-    #   failed:       :red,
-    #   healthy:      :green,
-    #   unhealthy:    :red,
-    #   InService:    :green,
-    #   OutOfService: :red,
-    # }
-
     no_commands do
-      # def color(string)
-      #   set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      # end
-
       def acm
         @_acm ||= Aws::ACM::Client.new
       end
