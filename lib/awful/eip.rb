@@ -11,7 +11,7 @@ module Awful
       ## get an EIP by id or public ip
       def find_eip(thing)
         ec2.describe_addresses.addresses.find do |eip|
-          (thing == eip.public_ip) || (thing == eip.allocation_id)
+          (thing == eip.public_ip) || (thing == eip.allocation_id) || (thing == eip.association_id)
         end
       end
     end
