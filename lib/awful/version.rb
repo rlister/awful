@@ -1,3 +1,3 @@
 module Awful
-  VERSION = '0.0.157'
+  VERSION = '0.0.158'
 end
