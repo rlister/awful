@@ -36,6 +36,14 @@ module Awful
         end
         tables
       end
+
+      def get_arn(name)
+        if name.start_with?('arn:aws:dynamodb:') # already an arn
+          name
+        else
+          dynamodb.describe_table(table_name: name).table.table_arn
+        end
+      end
     end
 
     desc 'ls [PATTERN]', 'list dynamodb tables [matching PATTERN]'
@@ -336,6 +344,26 @@ module Awful
       p items
       r = dynamodb.batch_write_item(request_items: {name => items})
       p r
+    end
+
+    desc 'tags TABLE', 'list tags for table'
+    def tags(name)
+      paginate(:tags) do |token|
+        dynamodb.list_tags_of_resource(resource_arn: get_arn(name), next_token: token)
+      end.output do |tags|
+        print_table tags.map { |t| [t.key, t.value] }
+      end
+    end
+
+    desc 'tag TABLE KEY', 'tag a table'
+    def tag(name, *tags)
+      dynamodb.tag_resource(
+        resource_arn: get_arn(name),
+        tags: tags.map { |t|
+          k, v = t.split(/[=:]/)
+          {key: k, value: v}
+        }
+      )
     end
 
     ## see lambda_events.rb for subcommands
