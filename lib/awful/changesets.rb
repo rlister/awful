@@ -48,7 +48,7 @@ module Awful
     end
 
     desc 'ls STACK_NAME', 'list change sets for stack'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(stack_name)
       cf.list_change_sets(stack_name: stack_name).summaries.tap do |list|
         if options[:long]

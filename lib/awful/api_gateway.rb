@@ -16,7 +16,7 @@ module Awful
   module ApiGateway
     class RestApi < Cli
       desc 'ls', 'list rest apis'
-      method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+      method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
       def ls
         api_gateway.get_rest_apis.items.output do |items|
           if options[:long]

@@ -3,7 +3,7 @@ module Awful
   class Vpc < Cli
 
     desc 'ls [PATTERN]', 'list vpcs [with any tags matching PATTERN]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ?
         ->(v) { [tag_name(v), v.vpc_id, v.state, v.cidr_block] } :

@@ -3,7 +3,7 @@ module Awful
   class TrustedAdvisor < Cli
 
     desc 'ls', 'list trusted advisor checks'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = '.')
       support.describe_trusted_advisor_checks(language: 'en').checks.select do |check|
         check.name.match(/#{name}/i)
@@ -17,8 +17,8 @@ module Awful
     end
 
     desc 'check ID', 'describe check result for given ID'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    method_option :all,  aliases: '-a', default: false, desc: 'List all flagged resources'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :all,  aliases: '-a', type: :boolean, default: false, desc: 'List all flagged resources'
     def check(id)
       support.describe_trusted_advisor_check_result(check_id: id).result.tap do |r|
         if options[:long]

@@ -24,7 +24,7 @@ module Awful
     end
 
     desc 'ls [ID]', 'list clusters'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(id = nil)
       elasticache.describe_cache_clusters(cache_cluster_id: id).cache_clusters.tap do |clusters|
         if options[:long]

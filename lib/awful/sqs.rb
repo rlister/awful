@@ -25,7 +25,7 @@ module Awful
     end
 
     desc 'ls [PATTERN]', 'list subnets [with any tags matching PATTERN]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(prefix = nil)
       queues = sqs.list_queues(queue_name_prefix: prefix).queue_urls
       attr = %w[QueueArn ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible LastModifiedTimestamp]

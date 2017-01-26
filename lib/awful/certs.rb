@@ -13,8 +13,8 @@ module Awful
     end
 
     desc 'ls [PATH_PREFIX]', 'list server certificates'
-    method_option :long, aliases: '-l', default: false, desc: 'long listing'
-    method_option :arns, aliases: '-a', default: false, desc: 'list ARNs'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :arns, aliases: '-a', type: :boolean, default: false, desc: 'list ARNs'
     def ls(path = nil)
       marker = nil
       certs = []

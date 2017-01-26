@@ -13,7 +13,7 @@ module Awful
     end
 
     desc 'ls [NAME]', 'list dynamodb streams [for table NAME]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(table_name = nil, exclusive_start_stream_arn = nil)
       response = streams.list_streams(
         table_name: table_name,

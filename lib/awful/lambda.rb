@@ -23,8 +23,8 @@ module Awful
     end
 
     desc 'ls NAME', 'list lambda functions matching NAME pattern'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    method_option :arns, aliases: '-a', default: false, desc: 'List ARNs for functions'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :arns, aliases: '-a', type: :boolean, default: false, desc: 'List ARNs for functions'
     def ls(name = /./)
       lambda.list_functions.functions.select do |function|
         function.function_name.match(name)
@@ -51,7 +51,7 @@ module Awful
     end
 
     desc 'update [NAME]', 'update lambda function config [and code]'
-    method_option :zip_file, aliases: '-z', default: false, desc: 'Update code zip file (creates if necessary)'
+    method_option :zip_file, aliases: '-z', type: :boolean, default: false, desc: 'Update code zip file (creates if necessary)'
     def update(name = nil)
       opt = load_cfg
       opt[:function_name] = name unless name.nil?
@@ -83,7 +83,7 @@ module Awful
     end
 
     desc 'code NAME', 'get code for lambda function NAME'
-    method_option :url, aliases: '-u', default: false, desc: 'Return just URL instead of downloading code'
+    method_option :url, aliases: '-u', type: :boolean, default: false, desc: 'Return just URL instead of downloading code'
     def code(name)
       url = lambda.get_function(function_name: name).code.location
       if options[:url]

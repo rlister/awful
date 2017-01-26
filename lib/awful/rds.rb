@@ -3,7 +3,7 @@ module Awful
   class Rds < Cli
 
     desc 'ls [NAME]', 'list DB instances matching NAME'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ?
         ->(d) { [d.db_instance_identifier, d.availability_zone, d.db_instance_class, d.db_instance_status, d.preferred_maintenance_window, d.storage_type, d.allocated_storage,

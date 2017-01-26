@@ -29,7 +29,7 @@ module Awful
     end
 
     desc 'mfa', 'list MFA devices'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def mfa
       iam.list_virtual_mfa_devices.virtual_mfa_devices.output do |devices|
         if options[:long]
@@ -44,8 +44,8 @@ module Awful
     end
 
     desc 'roles [NAME]', 'list IAM roles [matching NAME]'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    method_option :arns, aliases: '-a', default: false, desc: 'Show ARNs instead of names'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :arns, aliases: '-a', type: :boolean, default: false, desc: 'Show ARNs instead of names'
     def roles(name = /./)
       iam.list_roles.roles.select do |role|
         role.role_name.match(name)
@@ -67,7 +67,7 @@ module Awful
     end
 
     desc 'policy {role,group,user} NAME', 'List or show policy(s) for {role,group,user} NAME'
-    method_option :pretty, aliases: '-p', default: false, desc: 'Pretty-print policy document'
+    method_option :pretty, aliases: '-p', type: :boolean, default: false, desc: 'Pretty-print policy document'
     def policy(type, name, policy = nil)
 
       ## first matching role, group or user

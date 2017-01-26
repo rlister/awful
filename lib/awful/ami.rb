@@ -33,7 +33,7 @@ module Awful
     end
 
     desc 'ls [PATTERN]', 'list AMIs'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       images(options).select do |image|
         image.name.match(name)

@@ -20,7 +20,7 @@ module Awful
     end
 
     desc 'ls PATTERN', 'list buckets or objects'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = '.')
       if name.include?('/')
         bucket, prefix = name.split('/', 2)
@@ -31,7 +31,7 @@ module Awful
     end
 
     desc 'buckets [PATTERN]', 'list buckets'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def buckets(name = /./)
       s3.list_buckets.buckets.select do |bucket|
         bucket.name.match(/#{name}/)

@@ -32,7 +32,7 @@ module Awful
     end
 
     desc 'ls [NAME]', 'list load-balancers matching NAME'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       all_matching_elbs(name).output do |elbs|
         if options[:long]
@@ -46,7 +46,7 @@ module Awful
     end
 
     desc 'instances NAME', 'list instances and states for elb NAME'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def instances(name)
       instances = all_matching_elbs(name).map do |e|
         elb.describe_instance_health(load_balancer_name: e.load_balancer_name).map(&:instance_states)
@@ -116,11 +116,11 @@ module Awful
     end
 
     desc 'health_check NAME', 'set health-check'
-    method_option :target,              aliases: '-t', default: nil, desc: 'Health check target'
-    method_option :interval,            aliases: '-i', default: nil, desc: 'Check interval'
-    method_option :timeout,             aliases: '-o', default: nil, desc: 'Check timeout'
-    method_option :unhealthy_threshold, aliases: '-u', default: nil, desc: 'Unhealthy threshold'
-    method_option :healthy_threshold,   aliases: '-h', default: nil, desc: 'Healthy threshold'
+    method_option :target,              aliases: '-t', type: :string,  default: nil, desc: 'Health check target'
+    method_option :interval,            aliases: '-i', type: :numeric, default: nil, desc: 'Check interval'
+    method_option :timeout,             aliases: '-o', type: :numeric, default: nil, desc: 'Check timeout'
+    method_option :unhealthy_threshold, aliases: '-u', type: :numeric, default: nil, desc: 'Unhealthy threshold'
+    method_option :healthy_threshold,   aliases: '-h', type: :numeric, default: nil, desc: 'Healthy threshold'
     def health_check(name)
       opt = load_cfg.merge(options.reject(&:nil?))
       hc = elb.configure_health_check(load_balancer_name: name, health_check: opt[:health_check])
@@ -147,7 +147,7 @@ module Awful
     end
 
     desc 'state [INSTANCE_IDS]', 'show health state for all instances, or listed instance ids'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def state(name, *instances)
       elb.describe_instance_health(load_balancer_name: name, instances: instance_ids(*instances)).instance_states.output do |list|
         if options[:long]

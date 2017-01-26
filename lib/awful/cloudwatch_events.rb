@@ -22,7 +22,7 @@ module Awful
     end
 
     desc 'ls [PREFIX]', 'list events'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(prefix = nil)
       next_token = nil
       rules = []
@@ -57,7 +57,7 @@ module Awful
     end
 
     desc 'targets NAME', 'list targets for named rule'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def targets(name)
       next_token = nil
       targets = []

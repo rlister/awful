@@ -5,7 +5,7 @@ module Awful
   class LaunchConfig < Cli
 
     desc 'ls [PATTERN]', 'list launch configs with name matching PATTERN'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ? %i[launch_configuration_name image_id instance_type created_time] : %i[launch_configuration_name]
       autoscaling.describe_launch_configurations.map(&:launch_configurations).flatten.select do |lc|
@@ -53,9 +53,9 @@ module Awful
     end
 
     desc 'create NAME [FILE]', 'create a new launch configuration'
-    method_option :timestamp,                 aliases: '-t', default: false, desc: 'Add timestamp to launch config name'
-    method_option :launch_configuration_name, aliases: '-n', default: nil,   desc: 'launch configuration name'
-    method_option :image_id,                  aliases: '-i', default: nil,   desc: 'image ID (AMI to use)'
+    method_option :timestamp,                 aliases: '-t', type: :boolean, default: false, desc: 'Add timestamp to launch config name'
+    method_option :launch_configuration_name, aliases: '-n', type: :string,  default: nil,   desc: 'launch configuration name'
+    method_option :image_id,                  aliases: '-i', type: :string,  default: nil,   desc: 'image ID (AMI to use)'
     def create(file = nil)
       opt = load_cfg(options, file)
 

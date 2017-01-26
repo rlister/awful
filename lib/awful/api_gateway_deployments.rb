@@ -9,7 +9,7 @@ module Awful
 
     class Deployments < Cli
       desc 'ls REST_API_ID', 'list deployments for given rest api'
-      method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+      method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
       def ls(id)
         api_gateway.get_deployments(rest_api_id: id).items.output do |items|
           if options[:long]

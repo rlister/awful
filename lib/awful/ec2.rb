@@ -87,9 +87,9 @@ module Awful
     end
 
     desc 'create NAME', 'run new EC2 instance'
-    method_option :subnet,     :aliases => '-s', :default => nil,  :desc => 'VPC subnet to use; default nil (classic)'
-    method_option :public_ip,  :aliases => '-p', :default => true, :desc => 'Assign public IP to VPC instances'
-    method_option :elastic_ip, :aliases => '-e', :default => true, :desc => 'Assign new elastic IP to instances'
+    method_option :subnet,     aliases: '-s', type: :string,  default: nil,  desc: 'VPC subnet to use; default nil (classic)'
+    method_option :public_ip,  aliases: '-p', type: :boolean, default: true, desc: 'Assign public IP to VPC instances'
+    method_option :elastic_ip, aliases: '-e', type: :boolean, default: true, desc: 'Assign new elastic IP to instances'
     def create(name)
       opt = load_cfg.merge(symbolize_keys(options))
       whitelist = %i[image_id min_count max_count key_name security_group_ids user_data instance_type kernel_id
@@ -141,7 +141,7 @@ module Awful
     end
 
     desc 'az', 'list availability zones'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def az
       ec2.describe_availability_zones.availability_zones.output do |zones|
         if options[:long]

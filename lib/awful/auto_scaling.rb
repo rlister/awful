@@ -55,7 +55,7 @@ module Awful
     end
 
     desc 'ls NAMES', 'list autoscaling groups with given names'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(*names)
       autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).auto_scaling_groups.output do |asgs|
         if options[:long]
@@ -113,7 +113,7 @@ module Awful
     end
 
     desc 'ips NAMES', 'list IPs for instances in named groups'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ips(*names)
       asg_instance_details(*names).output do |instances|
         if options[:long]
@@ -161,11 +161,11 @@ module Awful
     end
 
     desc 'create [FILE]', 'create a new auto-scaling group'
-    method_option :auto_scaling_group_name,   aliases: '-n', default: nil, desc: 'Auto-scaling group name'
-    method_option :launch_configuration_name, aliases: '-l', default: nil, desc: 'Launch config name'
-    method_option :desired_capacity,          aliases: '-d', default: nil, desc: 'Set desired capacity'
-    method_option :min_size,                  aliases: '-m', default: nil, desc: 'Set minimum capacity'
-    method_option :max_size,                  aliases: '-M', default: nil, desc: 'Set maximum capacity'
+    method_option :auto_scaling_group_name,   aliases: '-n', type: :string,  default: nil, desc: 'Auto-scaling group name'
+    method_option :launch_configuration_name, aliases: '-l', type: :string,  default: nil, desc: 'Launch config name'
+    method_option :desired_capacity,          aliases: '-d', type: :numeric, default: nil, desc: 'Set desired capacity'
+    method_option :min_size,                  aliases: '-m', type: :numeric, default: nil, desc: 'Set minimum capacity'
+    method_option :max_size,                  aliases: '-M', type: :numeric, default: nil, desc: 'Set maximum capacity'
     def create(file = nil)
       opt = load_cfg(options, file)
       whitelist = %i[auto_scaling_group_name launch_configuration_name instance_id min_size max_size desired_capacity default_cooldown availability_zones
@@ -181,10 +181,10 @@ module Awful
     end
 
     desc 'update NAME [FILE]', 'update existing auto-scaling group'
-    method_option :desired_capacity,          aliases: '-d', default: nil, desc: 'Set desired capacity'
-    method_option :min_size,                  aliases: '-m', default: nil, desc: 'Set minimum capacity'
-    method_option :max_size,                  aliases: '-M', default: nil, desc: 'Set maximum capacity'
-    method_option :launch_configuration_name, aliases: '-l', default: nil, desc: 'Launch config name'
+    method_option :desired_capacity,          aliases: '-d', type: :numeric, default: nil, desc: 'Set desired capacity'
+    method_option :min_size,                  aliases: '-m', type: :numeric, default: nil, desc: 'Set minimum capacity'
+    method_option :max_size,                  aliases: '-M', type: :numeric, default: nil, desc: 'Set maximum capacity'
+    method_option :launch_configuration_name, aliases: '-l', type: :string,  default: nil, desc: 'Launch config name'
     def update(name, file = nil)
       opt = load_cfg(options, file)
 
@@ -313,7 +313,7 @@ module Awful
     end
 
     desc 'launch_configuration NAMES', 'get launch configs for given ASGs'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def launch_configuration(*names)
       autoscaling.describe_auto_scaling_groups(
         auto_scaling_group_names: names
@@ -329,12 +329,12 @@ module Awful
     end
 
     desc 'old_instances ASGS', 'Deal with instances that are not on their ASG current launch config'
-    method_option :long,       aliases: '-l', default: false, desc: 'Long listing'
-    method_option :groups,     aliases: '-g', default: false, desc: 'Just list names of ASGs with outdated instances'
-    method_option :detach,     aliases: '-D', default: false, desc: 'Detach old instances from this ASG'
-    method_option :decrement,  aliases: '-d', default: false, desc: 'should decrement desired capacity when detaching instances from ASG'
-    method_option :deregister, aliases: '-E', default: false, desc: 'Deregister old instances from ELB for this ASG'
-    method_option :terminate,  aliases: '-t', default: false, desc: 'Terminate old instances'
+    method_option :long,       aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :groups,     aliases: '-g', type: :boolean, default: false, desc: 'Just list names of ASGs with outdated instances'
+    method_option :detach,     aliases: '-D', type: :boolean, default: false, desc: 'Detach old instances from this ASG'
+    method_option :decrement,  aliases: '-d', type: :boolean, default: false, desc: 'should decrement desired capacity when detaching instances from ASG'
+    method_option :deregister, aliases: '-E', type: :boolean, default: false, desc: 'Deregister old instances from ELB for this ASG'
+    method_option :terminate,  aliases: '-t', type: :boolean, default: false, desc: 'Terminate old instances'
     def old_instances(*names)
       asgs = autoscaling.describe_auto_scaling_groups(auto_scaling_group_names: names).map(&:auto_scaling_groups).flatten
 
@@ -377,8 +377,8 @@ module Awful
     end
 
     desc 'activities ASG', 'describe recent scaling activities for group ASG'
-    method_option :long,  aliases: '-l', default: false, desc: 'Long listing'
-    method_option :cause, aliases: '-c', default: false, desc: 'Long listing with cause of activity'
+    method_option :long,  aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :cause, aliases: '-c', type: :boolean, default: false, desc: 'Long listing with cause of activity'
     def activities(name)
       autoscaling.describe_scaling_activities(auto_scaling_group_name: name).activities.output do |activities|
         if options[:long]

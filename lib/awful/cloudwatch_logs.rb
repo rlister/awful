@@ -24,7 +24,7 @@ module Awful
     end
 
     desc 'ls [PREFIX]', 'list log groups'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(prefix = nil)
       paginate(:log_groups) do |token|
         logs.describe_log_groups(log_group_name_prefix: prefix, next_token: token)
@@ -55,9 +55,9 @@ module Awful
     end
 
     desc 'streams GROUP [PREFIX]', 'list log streams for GROUP'
-    method_option :long,  aliases: '-l', default: false, desc: 'long listing'
-    method_option :limit, aliases: '-n', default: 50,    desc: 'limit number of results per page call'
-    method_option :alpha, aliases: '-a', default: false, desc: 'order by name'
+    method_option :long,  aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :limit, aliases: '-n', type: :numeric, default: 50,    desc: 'limit number of results per page call'
+    method_option :alpha, aliases: '-a', type: :boolean, default: false, desc: 'order by name'
     def streams(group, prefix = nil)
       paginate(:log_streams) do |token|
         logs.describe_log_streams(

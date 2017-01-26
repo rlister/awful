@@ -9,7 +9,7 @@ module Awful
 
     class Stages < Cli
       desc 'ls REST_API_ID', 'list stages for given rest api'
-      method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+      method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
       def ls(id, deployment = nil)
         api_gateway.get_stages(rest_api_id: id, deployment_id: deployment).item.output do |items|
           if options[:long]

@@ -4,7 +4,7 @@ module Awful
   class DataPipeline < Cli
 
     desc 'ls [PATTERN]', 'list data pipelines'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       dps = datapipeline.list_pipelines.pipeline_id_list.select do |dp|
         dp.name.match(name)

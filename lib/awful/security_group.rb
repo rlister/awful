@@ -64,7 +64,7 @@ module Awful
     end
 
     desc 'inbound NAME', 'show inbound rules for named security group'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def inbound(name)
       first_matching_sg(name).ip_permissions.output do |perms|
         sources = ->(perm) { perm.ip_ranges.map(&:cidr_ip) + perm.user_id_group_pairs.map(&:group_id) }

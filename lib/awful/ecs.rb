@@ -28,8 +28,8 @@ module Awful
     end
 
     desc 'ls NAME', 'list ECS clusters'
-    method_option :arns, aliases: '-a', default: false, desc: 'List just ARNs'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :arns, aliases: '-a', type: :boolean, default: false, desc: 'List just ARNs'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = '.')
       arns = ecs.list_clusters.cluster_arns.select do |arn|
         arn.split('/').last.match(/#{name}/i)
@@ -61,7 +61,7 @@ module Awful
     end
 
     desc 'instances CLUSTER', 'list instances for CLUSTER'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def instances(cluster)
       arns = ecs.list_container_instances(cluster: cluster).container_instance_arns
       if options[:long]
@@ -90,8 +90,8 @@ module Awful
     end
 
     desc 'definitions [FAMILY_PREFIX]', 'task definitions [for FAMILY]'
-    method_option :arns,     aliases: '-a', default: false, desc: 'show full ARNs for tasks definitions'
-    method_option :inactive, aliases: '-i', default: false, desc: 'show INACTIVE instead of ACTIVE task definitions'
+    method_option :arns,     aliases: '-a', type: :boolean, default: false, desc: 'show full ARNs for tasks definitions'
+    method_option :inactive, aliases: '-i', type: :boolean, default: false, desc: 'show INACTIVE instead of ACTIVE task definitions'
     def definitions(family = nil)
       params = {family_prefix: family, status: options[:inactive] ? 'INACTIVE' : 'ACTIVE'}.reject{|_,v| v.nil?}
       arns = ecs.list_task_definitions(params).task_definition_arns
@@ -133,7 +133,7 @@ module Awful
     end
 
     desc 'dump TASK', 'describe details for TASK definition'
-    method_option :json, aliases: '-j', default: false, desc: 'dump as json instead of yaml'
+    method_option :json, aliases: '-j', type: :boolean, default: false, desc: 'dump as json instead of yaml'
     def dump(task)
       ecs.describe_task_definition(task_definition: task).task_definition.to_h.output do |hash|
         if options[:json]
@@ -145,8 +145,8 @@ module Awful
     end
 
     desc 'tasks CLUSTER', 'list tasks for CLUSTER'
-    method_option :long,   aliases: '-l', default: false,     desc: 'Long listing'
-    method_option :status, aliases: '-s', default: 'running', desc: 'choose status to show: running/pending/stopped'
+    method_option :long,   aliases: '-l', type: :boolean, default: false,     desc: 'Long listing'
+    method_option :status, aliases: '-s', type: :boolean, default: 'running', desc: 'choose status to show: running/pending/stopped'
     def tasks(cluster)
       status = %w[running pending stopped].find{ |s| s.match(/^#{options[:status]}/i) }
       arns = ecs.list_tasks(cluster: cluster, desired_status: status.upcase).task_arns
@@ -179,7 +179,7 @@ module Awful
     end
 
     desc 'services CLUSTER', 'list services for a cluster'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def services(cluster)
       arns = ecs.list_services(cluster: cluster).service_arns
       if options[:long]
@@ -218,7 +218,7 @@ module Awful
     end
 
     desc 'run_task CLUSTER TASK_DEFINITION', 'run a task on given cluster'
-    method_option :command, aliases: '-c', default: nil, desc: 'override container command as name:cmd,arg1,arg2'
+    method_option :command, aliases: '-c', type: :string, default: nil, desc: 'override container command as name:cmd,arg1,arg2'
     def run_task(cluster, task)
       container_overrides = {}
       if options[:command]

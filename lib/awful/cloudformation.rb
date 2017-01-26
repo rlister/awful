@@ -45,8 +45,8 @@ module Awful
     end
 
     desc 'ls [PATTERN]', 'list cloudformation stacks matching PATTERN'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
-    method_option :all,  aliases: '-a', default: false, desc: 'Show all, including stacks in DELETE_COMPLETE'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    method_option :all,  aliases: '-a', type: :boolean, default: false, desc: 'Show all, including stacks in DELETE_COMPLETE'
     def ls(name = /./)
       stacks = stack_summaries
 
@@ -218,7 +218,7 @@ module Awful
     end
 
     desc 'id NAME RESOURCE', 'get physical_resource_id from a logical_resource_id RESOURCE for stack with NAME'
-    method_option :all, aliases: '-a', default: false, desc: 'Return all details about resource as YAML'
+    method_option :all, aliases: '-a', type: :boolean, default: false, desc: 'Return all details about resource as YAML'
     def id(name, resource)
       detail = cf.describe_stack_resource(stack_name: name, logical_resource_id: resource).stack_resource_detail
       if options[:all]

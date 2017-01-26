@@ -20,7 +20,7 @@ module Awful
     end
 
     desc 'ls [FUNCTION_NAME]', 'list event source mappings'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = nil)
       lambda.list_event_source_mappings(function_name: name).event_source_mappings.tap do |sources|
         if options[:long]

@@ -45,7 +45,7 @@ module Awful
     end
 
     desc 'ls [NAME]', 'list hosted zones'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       route53.list_hosted_zones.hosted_zones.select do |zone|
         zone.name.match(name)

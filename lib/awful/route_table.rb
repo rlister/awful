@@ -3,7 +3,7 @@ module Awful
   class RouteTable < Cli
 
     desc 'ls [PATTERN]', 'list routes'
-    method_option :long, aliases: '-l', default: false, desc: 'Long listing'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = nil)
       fields = options[:long] ?
         ->(r) { [ tag_name(r), r.route_table_id, r.vpc_id ] } :
