@@ -4,16 +4,22 @@ module Awful
 
   class LaunchConfig < Cli
 
-    desc 'ls [PATTERN]', 'list launch configs with name matching PATTERN'
-    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
-    def ls(name = /./)
-      fields = options[:long] ? %i[launch_configuration_name image_id instance_type created_time] : %i[launch_configuration_name]
-      autoscaling.describe_launch_configurations.map(&:launch_configurations).flatten.select do |lc|
-        lc.launch_configuration_name.match(name)
-      end.map do |lc|
-        fields.map { |field| lc.send(field) }
-      end.tap do |list|
-        print_table list
+    desc 'ls [NAMES]', 'list launch configurations'
+    method_option :long,  aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :match, aliases: '-m', type: :string,  default: nil,   desc: 'filter by matching name'
+    def ls(*names)
+      paginate(:launch_configurations) do |token|
+        autoscaling.describe_launch_configurations(launch_configuration_names: names, next_token: token)
+      end.tap do |lcs|
+        lcs.select! { |lc| lc.launch_configuration_name.match(options[:match]) } if options[:match]
+      end.output do |lcs|
+        if options[:long]
+          print_table lcs.map { |lc|
+            [lc.launch_configuration_name, lc.image_id, lc.instance_type, lc.created_time]
+          }
+        else
+          puts lcs.map(&:launch_configuration_name)
+        end
       end
     end
 
@@ -37,10 +43,18 @@ module Awful
     end
 
     desc 'dump NAME', 'dump existing launch_configuration as yaml'
-    def dump(name)
-      lc = autoscaling.describe_launch_configurations(launch_configuration_names: Array(name)).map(&:launch_configurations).flatten.first.to_hash
-      lc[:user_data] = Base64.decode64(lc[:user_data])
-      puts YAML.dump(stringify_keys(lc))
+    method_option :match, aliases: '-m', type: :string, default: nil, desc: 'filter by matching name'
+    def dump(*names)
+      paginate(:launch_configurations) do |token|
+        autoscaling.describe_launch_configurations(launch_configuration_names: names, next_token: token)
+      end.tap do |lcs|
+        lcs.select! { |lc| lc.launch_configuration_name.match(options[:match]) } if options[:match]
+      end.output do |lcs|
+        lcs.each do |lc|
+          lc[:user_data] = Base64.decode64(lc[:user_data])
+          puts YAML.dump(stringify_keys(lc.to_hash))
+        end
+      end
     end
 
     desc 'latest', 'latest'
