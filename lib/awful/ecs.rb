@@ -60,6 +60,15 @@ module Awful
       end
     end
 
+    desc 'delete NAME', 'delete a cluster'
+    def delete(name)
+      if yes?("Really delete stack #{name}?", :yellow)
+        ecs.delete_cluster(cluster: name).cluster.output do |cluster|
+          puts YAML.dump(stringify_keys(cluster.to_h))
+        end
+      end
+    end
+
     desc 'instances CLUSTER', 'list instances for CLUSTER'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def instances(cluster)
