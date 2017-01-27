@@ -146,7 +146,7 @@ module Awful
 
     desc 'tasks CLUSTER', 'list tasks for CLUSTER'
     method_option :long,   aliases: '-l', type: :boolean, default: false,     desc: 'Long listing'
-    method_option :status, aliases: '-s', type: :boolean, default: 'running', desc: 'choose status to show: running/pending/stopped'
+    method_option :status, aliases: '-s', type: :string,  default: 'running', desc: 'choose status to show: running/pending/stopped'
     def tasks(cluster)
       status = %w[running pending stopped].find{ |s| s.match(/^#{options[:status]}/i) }
       arns = ecs.list_tasks(cluster: cluster, desired_status: status.upcase).task_arns
