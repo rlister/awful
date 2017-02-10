@@ -49,6 +49,23 @@ module Awful
       end
     end
 
+    desc 'history NAME', 'get parameter history'
+    method_option :long,   aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    def history(name)
+      paginate(:parameters) do |token|
+        ssm.get_parameter_history(
+          name: name,
+          with_decryption: options[:decrypt],
+          next_token: token,
+        )
+      end.output do |params|
+        if options[:long]
+          print_table params.map { |p|
+            [p.name, p.value, p.last_modified_date, p.last_modified_user]
+          }
+        else
+          puts params.map(&:value)
+        end
       end
     end
 
