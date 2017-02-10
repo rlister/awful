@@ -35,12 +35,20 @@ module Awful
     end
 
     desc 'get NAMES', 'get parameter values'
+    method_option :long,   aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     method_option :decrypt, aliases: '-d', type: :boolean, default: false, desc: 'decrypt values for SecureString types'
     def get(*names)
       ssm.get_parameters(names: names, with_decryption: options[:decrypt]).parameters.output do |params|
-        print_table params.map { |p|
-          [p.name, p.value]
-        }
+        if options[:long]
+          print_table params.map { |p|
+            [p.name, p.value]
+          }
+        else
+          puts params.map(&:value)
+        end
+      end
+    end
+
       end
     end
 
