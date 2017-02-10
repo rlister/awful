@@ -34,5 +34,39 @@ module Awful
       end
     end
 
+    desc 'get NAMES', 'get parameter values'
+    method_option :decrypt, aliases: '-d', type: :boolean, default: false, desc: 'decrypt values for SecureString types'
+    def get(*names)
+      ssm.get_parameters(names: names, with_decryption: options[:decrypt]).parameters.output do |params|
+        print_table params.map { |p|
+          [p.name, p.value]
+        }
+      end
+    end
+
+    desc 'put NAME VALUE', 'put parameter into the store'
+    method_option :description, aliases: '-d', type: :string,  default: nil,      desc: 'description for params'
+    method_option :type,        aliases: '-t', type: :string,  default: 'String', desc: 'String, StringList, SecureString'
+    method_option :key_id,      aliases: '-k', type: :string,  default: nil,      desc: 'KMS key for SecureString params'
+    method_option :overwrite,   aliases: '-o', type: :boolean, default: false,    desc: 'overwrite existing params'
+    def put(name, value)
+      ssm.put_parameter(
+        name:        name,
+        value:       value,
+        description: options[:description],
+        type:        options[:type],
+        key_id:      options[:key_id],
+        overwrite:   options[:overwrite],
+      )
+    end
+
+    desc 'delete NAME', 'delete parameter from the store'
+    method_option :yes, aliases: '-y', type: :boolean, default: false, desc: 'delete without query'
+    def delete(name)
+      if options[:yes] || yes?("Really delete parameter #{name}?", :yellow)
+        ssm.delete_parameter(name: name)
+      end
+    end
+
   end
 end
