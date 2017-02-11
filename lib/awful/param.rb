@@ -38,7 +38,9 @@ module Awful
     method_option :long,   aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     method_option :decrypt, aliases: '-d', type: :boolean, default: false, desc: 'decrypt values for SecureString types'
     def get(*names)
-      ssm.get_parameters(names: names, with_decryption: options[:decrypt]).parameters.output do |params|
+      names.each_slice(10).map do |batch| # API allows only 10 at a time
+        ssm.get_parameters(names: batch, with_decryption: options[:decrypt]).parameters
+      end.flatten.output do |params|
         if options[:long]
           print_table params.map { |p|
             [p.name, p.value]
