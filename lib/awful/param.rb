@@ -26,7 +26,7 @@ module Awful
       end.output do |params|
         if options[:long]
           print_table params.map { |p|
-            [p.name, p.type, p.description, p.key_id, p.last_modified_date, p.last_modified_user]
+            [p.name, p.type, p.description, p.key_id, p.last_modified_date, p.last_modified_user.split('/').last]
           }
         else
           puts params.map(&:name)
