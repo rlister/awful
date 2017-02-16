@@ -106,5 +106,28 @@ module Awful
       puts kms.decrypt(ciphertext_blob: key)
     end
 
+    desc 'tag KEY=VALUE ...', 'add one or more tags to key'
+    def tag(id, *tags)
+      kms.tag_resource(
+          key_id: id_or_alias(id),
+          tags: tags.map do |tag|
+            k,v = tag.split(/[:=]/)
+            {tag_key: k, tag_value: v}
+          end
+        )
+    end
+
+    desc 'tags', 'list tags for key'
+    def tags(id)
+      paginate(:tags) do |marker|
+        kms.list_resource_tags(
+          key_id: id_or_alias(id),
+          next_marker: marker,
+        )
+      end.output do |tags|
+        print_table tags.map(&:to_a)
+      end
+    end
+
   end
 end
