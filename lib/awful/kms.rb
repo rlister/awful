@@ -117,5 +117,22 @@ module Awful
       end
     end
 
+    desc 'aliases', 'list aliases for account'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    def aliases
+      list_aliases.output do |list|
+        if options[:long]
+          print_table list.map { |a| [a.alias_name, a.target_key_id, a.alias_arn] }
+        else
+          puts list.map(&:alias_name)
+        end
+      end
+    end
+
+    desc 'id ALIAS', 'get key ID for given alias'
+    def id(name)
+      alias_by_name(name).output(&method(:puts))
+    end
+
   end
 end
