@@ -22,21 +22,21 @@ module Awful
         set_color(string, COLORS.fetch(string.to_sym, :yellow))
       end
 
-      def aliases
+      def list_aliases
         paginate(:aliases) do |marker|
           kms.list_aliases(marker: marker)
         end
       end
 
       def aliases_hash
-        @_aliases_hash ||= aliases.each_with_object({}) do |a, h|
+        @_aliases_hash ||= list_aliases.each_with_object({}) do |a, h|
           h[a.target_key_id] = a.alias_name.gsub(/^alias\//, '')
         end
       end
 
       ## return target id for alias
       def alias_by_name(name)
-        aliases.find do |a|
+        list_aliases.find do |a|
           a.alias_name == "alias/#{name}"
         end.target_key_id
       end
