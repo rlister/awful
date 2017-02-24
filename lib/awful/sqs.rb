@@ -8,7 +8,7 @@ module Awful
   class SQS < Cli
     no_commands do
       def sqs
-        @sqs ||= Aws::SQS::Client.new
+        @_sqs ||= Aws::SQS::Client.new
       end
 
       def is_url?(str)
@@ -24,8 +24,8 @@ module Awful
       end
     end
 
-    desc 'ls [PATTERN]', 'list subnets [with any tags matching PATTERN]'
-    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    desc 'ls [PREFIX]', 'list queues (starting with prefix)'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def ls(prefix = nil)
       queues = sqs.list_queues(queue_name_prefix: prefix).queue_urls
       attr = %w[QueueArn ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible LastModifiedTimestamp]
