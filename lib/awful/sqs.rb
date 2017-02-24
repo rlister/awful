@@ -24,22 +24,20 @@ module Awful
       end
     end
 
-    desc 'ls [PREFIX]', 'list queues (starting with prefix)'
-    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
-    def ls(prefix = nil)
-      queues = sqs.list_queues(queue_name_prefix: prefix).queue_urls
+    desc 'ls [NAMES]', 'list queues, can limit by list of names or URLs'
+    method_option :long,   aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :prefix, aliases: '-p', type: :string,  default: nil,   desc: 'list by prefix'
+    def ls(*names)
+      if names.empty?
+        queues = sqs.list_queues(queue_name_prefix: options[:prefix]).queue_urls
+      else
+        queues = names.map(&method(:queue_url))
+      end
       attr = %w[QueueArn ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible LastModifiedTimestamp]
       if options[:long]
-        queues.map do |queue|
-          sqs.get_queue_attributes(queue_url: queue, attribute_names: attr).attributes
-        end.output do |list|
+        queues.map {|q| sqs.get_queue_attributes(queue_url: q, attribute_names: attr).attributes}.output do |list|
           print_table list.map { |q|
-            [
-              q['QueueArn'].split(':').last,
-              q['ApproximateNumberOfMessages'],
-              q['ApproximateNumberOfMessagesNotVisible'],
-              Time.at(q['LastModifiedTimestamp'].to_i)
-            ]
+            [q['QueueArn'].split(':').last, q['ApproximateNumberOfMessages'], q['ApproximateNumberOfMessagesNotVisible'], Time.at(q['LastModifiedTimestamp'].to_i)]
           }
         end
       else
