@@ -72,14 +72,16 @@ module Awful
     end
 
     desc 'put NAME VALUE', 'put parameter into the store'
+    method_option :name,        aliases: '-n', type: :string,  default: nil,      desc: 'give name as option instead of arg'
+    method_option :value,       aliases: '-v', type: :string,  default: nil,      desc: 'give value as option instead of arg'
     method_option :description, aliases: '-d', type: :string,  default: nil,      desc: 'description for params'
     method_option :type,        aliases: '-t', type: :string,  default: 'String', desc: 'String, StringList, SecureString'
     method_option :key_id,      aliases: '-k', type: :string,  default: nil,      desc: 'KMS key for SecureString params'
     method_option :overwrite,   aliases: '-o', type: :boolean, default: false,    desc: 'overwrite existing params'
-    def put(name, value)
+    def put(name = nil, value = nil)
       ssm.put_parameter(
-        name:        name,
-        value:       value,
+        name:        options[:name] || name,
+        value:       options[:value] || value,
         description: options[:description],
         type:        options[:type],
         key_id:      options[:key_id],
