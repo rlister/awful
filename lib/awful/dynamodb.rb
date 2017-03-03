@@ -366,6 +366,24 @@ module Awful
       )
     end
 
+    desc 'ttl TABLE [ATTRIBUTE]', 'get/set time to live for table'
+    method_option :disable, type: :boolean, default: false, desc: 'disable TTL'
+    def ttl(name, attribute = nil)
+      if attribute
+        dynamodb.update_time_to_live(
+          table_name: name,
+          time_to_live_specification: {
+            enabled: !options[:disable],
+            attribute_name: attribute,
+          }
+        )
+      else
+        dynamodb.describe_time_to_live(table_name: name).time_to_live_description.output do |t|
+          puts YAML.dump(stringify_keys(t.to_hash))
+        end
+      end
+    end
+
     ## see lambda_events.rb for subcommands
     desc 'streams SUBCOMMANDS', 'subcommands for dynamodb streams'
     subcommand 'streams', Streams
