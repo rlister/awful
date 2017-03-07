@@ -45,6 +45,22 @@ module Awful
           describe_load_balancers(name_or_arn).first.load_balancer_arn
         end
       end
+
+      def get_tag(name, key)
+        alb.describe_tags(resource_arns: [get_arn(name)]).tag_descriptions.first.tags.find do |tag|
+          tag.key == key
+        end.output do |tag|
+          puts tag.value if tag
+        end
+      end
+
+      def add_tag(name, key, value)
+        alb.add_tags(resource_arns: [get_arn(name)], tags: [{key: key, value: value}])
+      end
+
+      def remove_tags(name, *keys)
+        alb.remove_tags(resource_arns: [get_arn(name)], tag_keys: keys)
+      end
     end
 
     desc 'ls [NAMES]', 'list application load-balancers'
@@ -126,6 +142,27 @@ module Awful
         else
           puts rules.map(&:rule_arn)
         end
+      end
+    end
+
+    desc 'tags NAMES', 'get tags for ALBs'
+    def tags(*names)
+      alb.describe_tags(resource_arns: names.map(&method(:get_arn))).tag_descriptions.output do |albs|
+        albs.each do |alb|
+          print_table alb.tags.map{ |t| [t.key, t.value] }
+        end
+      end
+    end
+
+    desc 'tag NAME KEY [VALUE]', 'get/set value of a single tag for given ALB'
+    method_option :delete, type: :boolean, default: false, desc: 'delete tag'
+    def tag(name, key, value = nil)
+      if options[:delete]
+        remove_tags(name, key)
+      elsif value
+        add_tag(name, key, value)
+      else
+        get_tag(name, key)
       end
     end
 
