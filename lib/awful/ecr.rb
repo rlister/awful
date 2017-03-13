@@ -78,15 +78,16 @@ module Awful
     end
 
     desc 'login [REGISTRIES]', 'run docker login for registry'
-    method_option :email, aliases: '-E', type: :string,  default: 'none', desc: 'Email for docker login command'
+    method_option :email,                type: :string,  default: nil,    desc: 'Email for docker login command'
     method_option :print, aliases: '-p', type: :boolean, default: false,  desc: 'Print docker login command instead of running it'
     def login(*registries)
       cmd = options[:print] ? :puts : :system
       registries = nil if registries.empty?
+      email = options[:email] ? "-e #{options[:email]}" : ''  # -e deprecated as of 1.14, here for older docker clients
       ecr.get_authorization_token(registry_ids: registries).authorization_data.output do |auths|
         auths.each do |auth|
           user, pass = Base64.decode64(auth.authorization_token).split(':')
-          send(cmd, "docker login -u #{user} -p #{pass} -e #{options[:email]} #{auth.proxy_endpoint}")
+          send(cmd, "docker login -u #{user} -p #{pass} #{email} #{auth.proxy_endpoint}")
         end
       end
     end
