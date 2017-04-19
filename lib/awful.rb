@@ -18,6 +18,7 @@ module Awful
   class Cli < Thor
     class_option :env,   aliases: '-e', type: :string,  default: nil,   desc: 'Load environment variables from file'
     class_option :quiet, aliases: '-q', type: :boolean, default: false, desc: 'Quieten output'
+    class_option :yes,                  type: :boolean, default: false, desc: 'Always answer yes to prompts'
     class_option :region,               type: :string,  default: nil,   desc: 'Set region; can use AWS_REGION instead'
 
     def initialize(args = [], local_options = {}, config = {})
@@ -27,6 +28,11 @@ module Awful
     end
 
     no_commands do
+      ## override thor yes? method to handle our yes option
+      def yes?(statement, color = nil)
+        options[:yes] ? say("#{statement} yes", color) : super(statement, color)
+      end
+
       def ec2
         @ec2 ||= Aws::EC2::Client.new
       end
