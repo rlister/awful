@@ -1,4 +1,4 @@
-require "awful/version"
+require 'awful/version'
 
 require 'dotenv'
 require 'aws-sdk'
