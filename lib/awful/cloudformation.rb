@@ -193,6 +193,7 @@ module Awful
     method_option :long,  aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     method_option :type,  aliases: '-t', type: :array,   default: nil,   desc: 'Filter by given resource types, e.g. AWS::IAM::Role'
     method_option :match, aliases: '-m', type: :string,  default: nil,   desc: 'Filter by case-insensitive regex matching type of resource'
+    method_option :truncate,             type: :boolean, default: true,  desc: 'truncate long lines'
     def resources(name)
       resources = cf.list_stack_resources(stack_name: name).stack_resource_summaries
 
@@ -210,7 +211,17 @@ module Awful
 
       resources.output do |resources|
         if options[:long]
-          print_table resources.map { |r| [r.logical_resource_id, r.physical_resource_id, r.resource_type, color(r.resource_status), r.resource_status_reason] }
+          print_table(
+            resources.map { |r|
+              [
+                r.logical_resource_id,
+                r.resource_type,
+                color(r.resource_status),
+                r.physical_resource_id,
+              ]
+            },
+            truncate: options[:truncate]
+          )
         else
           puts resources.map(&:logical_resource_id)
         end
