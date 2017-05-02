@@ -1,3 +1,5 @@
+require 'open-uri'
+
 module Awful
   module Short
     def sg(*args)
@@ -54,6 +56,20 @@ module Awful
         end
       end
 
+      ## get security group by name or id
+      def get_id(name)
+        if name.match(/^sg-[\d[a-f]]{8}$/)
+          name
+        else
+          ec2.describe_security_groups(filters: [{name: 'group-name', values: [name]}]).security_groups.first.group_id
+        end
+      end
+
+      ## lookup my IP as a CIDR
+      def get_my_ip
+        open('http://v4.ident.me/').read + '/32'
+      end
+
     end
 
     desc 'dump NAME', 'dump security group with NAME [or ID] as yaml'
@@ -103,6 +119,23 @@ module Awful
       params = %i[source_security_group_name source_security_group_owner_id ip_protocol from_port to_port cidr_ip].each_with_object({}) do |k,h|
         h[k] = options[k]
       end
+    desc 'authorize NAME|ID', 'authorize ingress for a security group'
+    method_option :port,     aliases: '-p', type: :numeric, default: 22,    desc: 'port to allow'
+    method_option :from_port,               type: :numeric, default: nil,   desc: 'start of port range'
+    method_option :to_port,                 type: :numeric, default: nil,   desc: 'end of port range'
+    method_option :protocol, aliases: '-P', type: :string,  default: 'tcp', desc: 'protocol to auth'
+    method_option :cidr,     aliases: '-c', type: :string,  default: nil,   desc: 'CIDR range to allow'
+    def authorize(name)
+      ec2.authorize_security_group_ingress(
+        group_id:    get_id(name),
+        ip_protocol: options[:protocol],
+        from_port:   options[:from_port] || options[:port],
+        to_port:     options[:to_port]   || options[:port],
+        cidr_ip:     options[:cidr] || get_my_ip,
+      )
+    rescue Aws::EC2::Errors::InvalidPermissionDuplicate => e
+      warn(e.message)
+    end
 
       ec2.revoke_security_group_ingress(params.merge(group_id: id, ip_permissions: perms))
     end
