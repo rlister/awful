@@ -96,29 +96,6 @@ module Awful
       end
     end
 
-    desc 'revoke ID [IP_PERMISSIONS]', 'revoke rules from security group'
-    method_option :source_security_group_name,     type: :string, default: nil, desc: 'ip permission'
-    method_option :source_security_group_owner_id, type: :string, default: nil, desc: 'ip permission'
-    method_option :ip_protocol,                    type: :string, default: nil, desc: 'ip permission'
-    method_option :from_port,                      type: :string, default: nil, desc: 'ip permission'
-    method_option :to_port,                        type: :string, default: nil, desc: 'ip permission'
-    method_option :cidr_ip,                        type: :string, default: nil, desc: 'ip permission'
-    def revoke(id, *ip_permissions)
-      ## invoked from code, process ip_permissions objects as args
-      perms = ip_permissions.map do |p|
-        p.to_hash.tap do |h|
-          h.each do |k,v|
-            h[k] = nil if (v.respond_to?(:empty?) && v.empty?) # no empty arrays, e.g. user_group_id_pairs, prefix_list_ids
-          end
-        end
-      end
-
-      perms = nil if perms.empty?
-
-      ## can set these on command-line
-      params = %i[source_security_group_name source_security_group_owner_id ip_protocol from_port to_port cidr_ip].each_with_object({}) do |k,h|
-        h[k] = options[k]
-      end
     desc 'authorize NAME|ID', 'authorize ingress for a security group'
     method_option :port,     aliases: '-p', type: :numeric, default: 22,    desc: 'port to allow'
     method_option :from_port,               type: :numeric, default: nil,   desc: 'start of port range'
@@ -137,8 +114,50 @@ module Awful
       warn(e.message)
     end
 
-      ec2.revoke_security_group_ingress(params.merge(group_id: id, ip_permissions: perms))
+    desc 'revoke NAME|ID', 'revoke ingress for a security group'
+    method_option :port,     aliases: '-p', type: :numeric, default: 22,    desc: 'port to allow'
+    method_option :from_port,               type: :numeric, default: nil,   desc: 'start of port range'
+    method_option :to_port,                 type: :numeric, default: nil,   desc: 'end of port range'
+    method_option :protocol, aliases: '-P', type: :string,  default: 'tcp', desc: 'protocol to revoke'
+    method_option :cidr,     aliases: '-c', type: :string,  default: nil,   desc: 'CIDR range to revoke'
+    def revoke(name)
+      ec2.revoke_security_group_ingress(
+        group_id:    get_id(name),
+        ip_protocol: options[:protocol],
+        from_port:   options[:from_port] || options[:port],
+        to_port:     options[:to_port]   || options[:port],
+        cidr_ip:     options[:cidr] || get_my_ip,
+      )
+    rescue Aws::EC2::Errors::InvalidPermissionNotFound => e
+      warn(e.message)
     end
+
+    # desc 'revoke ID [IP_PERMISSIONS]', 'revoke rules from security group'
+    # method_option :source_security_group_name,     type: :string, default: nil, desc: 'ip permission'
+    # method_option :source_security_group_owner_id, type: :string, default: nil, desc: 'ip permission'
+    # method_option :ip_protocol,                    type: :string, default: nil, desc: 'ip permission'
+    # method_option :from_port,                      type: :string, default: nil, desc: 'ip permission'
+    # method_option :to_port,                        type: :string, default: nil, desc: 'ip permission'
+    # method_option :cidr_ip,                        type: :string, default: nil, desc: 'ip permission'
+    # def revoke(id, *ip_permissions)
+    #   ## invoked from code, process ip_permissions objects as args
+    #   perms = ip_permissions.map do |p|
+    #     p.to_hash.tap do |h|
+    #       h.each do |k,v|
+    #         h[k] = nil if (v.respond_to?(:empty?) && v.empty?) # no empty arrays, e.g. user_group_id_pairs, prefix_list_ids
+    #       end
+    #     end
+    #   end
+
+    #   perms = nil if perms.empty?
+
+    #   ## can set these on command-line
+    #   params = %i[source_security_group_name source_security_group_owner_id ip_protocol from_port to_port cidr_ip].each_with_object({}) do |k,h|
+    #     h[k] = options[k]
+    #   end
+
+    #   ec2.revoke_security_group_ingress(params.merge(group_id: id, ip_permissions: perms))
+    # end
 
   end
 end
