@@ -183,9 +183,14 @@ module Awful
     end
 
     desc 'events NAME', 'show events for stack with name NAME'
+    method_option :number, aliases: '-n', type: :numeric, default: nil, desc: 'return n most recent events'
     def events(name)
-      cf.describe_stack_events(stack_name: name).stack_events.output do |events|
-        print_table events.map { |e| [e.timestamp, color(e.resource_status), e.resource_type, e.logical_resource_id, e.resource_status_reason] }
+      events = cf.describe_stack_events(stack_name: name).stack_events
+      events = events.first(options[:number]) if options[:number]
+      events.reverse.output do |events|
+        print_table events.map { |e|
+          [e.timestamp, color(e.resource_status), e.resource_type, e.logical_resource_id, e.resource_status_reason]
+        }
       end
     end
 
