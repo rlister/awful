@@ -104,7 +104,7 @@ module Awful
         end
       end
 
-      ## returns contents of named file, or stdin if file = nil
+      ## returns contents of named file, or stdin if file = nil, or false if no stdin
       def file_or_stdin(file)
         (file and File.read(file)) || ((not $stdin.tty?) and $stdin.read)
       end
