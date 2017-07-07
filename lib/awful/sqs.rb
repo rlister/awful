@@ -69,8 +69,14 @@ module Awful
     end
 
     desc 'send NAME_OR_URL MSG', 'send message to queue'
+    method_option :message_group_id,         aliases: '-g', type: :string, default: nil, desc: 'FIFO message group ID'
+    method_option :message_deduplication_id, aliases: '-d', type: :string, default: nil, desc: 'FIFO deduplication ID'
     def send(name, message)
-      sqs.send_message(queue_url: queue_url(name), message_body: message)
+      args = only_keys_matching(options, %w[message_group_id message_deduplication_id]).merge(
+        queue_url:    queue_url(name),
+        message_body: message,
+      )
+      sqs.send_message(args)
     end
 
     desc 'send_batch NAME_OR_URL MSGS', 'send a batch of up to 10 messages to queue'
