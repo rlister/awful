@@ -111,6 +111,46 @@ module Awful
       dynamodb.create_table(params)
     end
 
+    desc 'gsi NAME', 'get global secondary indexes for table'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :arn,  aliases: '-a', type: :boolean, default: false, desc: 'list ARNs'
+    def gsi(name)
+      (dynamodb.describe_table(table_name: name).table.global_secondary_indexes || []).output do |list|
+        if options[:long]
+          print_table list.map { |i|
+            hash  = i.key_schema.find{ |k| k.key_type == 'HASH' }&.attribute_name
+            range = i.key_schema.find{ |k| k.key_type == 'RANGE' }&.attribute_name
+            [i.index_name, color(i.index_status), hash, range, i.projection.projection_type,
+             i.provisioned_throughput.read_capacity_units, i.provisioned_throughput.write_capacity_units,
+             i.index_size_bytes, i.item_count]
+          }.sort
+        elsif options[:arn]
+          puts list.map(&:index_arn).sort
+        else
+          puts list.map(&:index_name).sort
+        end
+      end
+    end
+
+    desc 'lsi NAME', 'get local secondary indexes for table'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :arn,  aliases: '-a', type: :boolean, default: false, desc: 'list ARNs'
+    def lsi(name)
+      (dynamodb.describe_table(table_name: name).table.local_secondary_indexes || []).output do |list|
+        if options[:long]
+          print_table list.map { |i|
+            hash  = i.key_schema.find{ |k| k.key_type == 'HASH' }&.attribute_name
+            range = i.key_schema.find{ |k| k.key_type == 'RANGE' }&.attribute_name
+            [i.index_name, hash, range, i.projection.projection_type, i.index_size_bytes, i.item_count]
+          }.sort
+        elsif options[:arn]
+          puts list.map(&:index_arn).sort
+        else
+          puts list.map(&:index_name).sort
+        end
+      end
+    end
+
     desc 'throughput NAME', 'get or update provisioned throughput for table NAME'
     method_option :read_capacity_units,  aliases: '-r', type: :numeric, default: nil,   desc: 'Read capacity units'
     method_option :write_capacity_units, aliases: '-w', type: :numeric, default: nil,   desc: 'Write capacity units'
