@@ -1,4 +1,9 @@
 module Awful
+  module Short
+    def vpc(*args)
+      Awful::Vpc.new.invoke(*args)
+    end
+  end
 
   class Vpc < Cli
 

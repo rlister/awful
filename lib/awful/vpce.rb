@@ -1,4 +1,9 @@
 module Awful
+  module Short
+    def vpce(*args)
+      Awful::Vpce.new.invoke(*args)
+    end
+  end
 
   class Vpce < Cli
     COLORS = {
