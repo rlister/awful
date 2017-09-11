@@ -27,9 +27,9 @@ module Awful
     def ls(*ids)
       filters = [
         { name: 'vpc-endpoint-id',    values: ids },
-        { name: 'vpc-id',             values: options[:vpc] },
-        { name: 'service-name',       values: options[:service].map { |s| "com.amazonaws.#{ENV['AWS_REGION']}.#{s.downcase}" } },
-        { name: 'vpc-endpoint-state', values: options[:state] },
+        { name: 'vpc-id',             values: Array(options[:vpc]) },
+        { name: 'service-name',       values: Array(options[:service]).map { |s| "com.amazonaws.#{ENV['AWS_REGION']}.#{s.downcase}" } },
+        { name: 'vpc-endpoint-state', values: Array(options[:state]) },
       ].reject { |f| f[:values].empty? }
       filters = nil if filters.empty?
 
