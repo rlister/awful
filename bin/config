@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+#-*- mode: ruby; -*-
+
+require 'awful'
+require 'awful/config'
+
+Awful::Config.start(ARGV)
