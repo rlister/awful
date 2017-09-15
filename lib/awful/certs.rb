@@ -10,6 +10,20 @@ module Awful
       def iam
         @iam ||= Aws::IAM::Client.new
       end
+
+      def color_date(date)
+        diff = date - Time.now
+        set_color(
+          date,
+          if diff < 0
+            :red
+          elsif diff < (60*60*24*30)
+            :yellow
+          else
+            :green
+          end
+        )
+      end
     end
 
     desc 'ls [PATH_PREFIX]', 'list server certificates'
@@ -32,7 +46,7 @@ module Awful
               c.path,
               c.server_certificate_id,
               c.upload_date,
-              c.expiration,
+              color_date(c.expiration),
             ]
           }.sort
         elsif options[:arns]
