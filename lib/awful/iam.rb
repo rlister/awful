@@ -2,10 +2,18 @@ require 'json'
 
 module Awful
   class IAM < Cli
+    COLORS = {
+      Active:   :green,
+      Inactive: :red,
+    }
 
     no_commands do
       def iam
         @iam ||= Aws::IAM::Client.new
+      end
+
+      def color(string)
+        set_color(string, COLORS.fetch(string.to_sym, :yellow))
       end
     end
 
@@ -91,6 +99,62 @@ module Awful
           end
         end
       end
+    end
+
+    desc 'keys', 'list access keys'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :user, aliases: '-u', type: :string,  default: nil,   desc: 'show different user'
+    method_option :delete,              type: :string,  default: nil,   desc: 'delete named key'
+    def keys
+      if options[:delete]
+        if yes?("Really delete key #{options[:delete]}?", :yellow)
+          iam.delete_access_key(access_key_id: options[:delete])
+        end
+        return
+      end
+
+      ## list keys
+      iam.list_access_keys(user_name: options[:user]).access_key_metadata.output do |keys|
+        if options[:long]
+          print_table keys.map{ |k|
+            [k.user_name, k.access_key_id, k.create_date, color(k.status)]
+          }
+        else
+          puts keys.map(&:access_key_id)
+        end
+      end
+    end
+
+    desc 'old', 'report on old access keys'
+    method_option :days, aliases: '-d', type: :numeric, default: 90,    desc: 'age in days to treat as old'
+    method_option :all,  aliases: '-a', type: :boolean, default: false, desc: 'list all users'
+    def old
+      iam.list_users.users.map do |u|
+        iam.list_access_keys(user_name: u.user_name).access_key_metadata.map do |k|
+          age = ((Time.now - k.create_date)/(60*60*24)).to_i
+          too_old = age > options[:days]
+          if options[:all] || too_old
+            [k.user_name, k.create_date, set_color("#{age} days", too_old ? :red : :green)]
+          else
+            nil
+          end
+        end
+      end.flatten(1).reject(&:nil?).output do |list|
+        print_table list
+      end
+    end
+
+    desc 'rotate', 'rotate access key for user'
+    method_option :user, aliases: '-u', type: :string,  default: nil,   desc: 'show different user'
+    def rotate
+      key = iam.create_access_key(user_name: options[:user]).access_key
+      puts(
+        "Your new credentials:",
+        "AWS_ACCESS_KEY_ID=#{key.access_key_id}",
+        "AWS_SECRET_ACCESS_KEY=#{key.secret_access_key}",
+      )
+    rescue Aws::IAM::Errors::LimitExceeded
+      warn 'You have two access keys: please delete one and run this command again.'
     end
 
   end
