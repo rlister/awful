@@ -24,10 +24,6 @@ module Awful
     }
 
     no_commands do
-      def cf
-        @cf ||= Aws::CloudFormation::Client.new
-      end
-
       def color(string)
         set_color(string, COLORS.fetch(string.downcase.to_sym, :blue))
       end

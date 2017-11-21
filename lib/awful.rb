@@ -76,6 +76,10 @@ module Awful
         @s3 ||= Aws::S3::Client.new
       end
 
+      def cf
+        @cf ||= Aws::CloudFormation::Client.new
+      end
+
       def lambda
         @lambda ||= Aws::Lambda::Client.new
       end
