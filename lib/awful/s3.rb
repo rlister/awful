@@ -18,11 +18,24 @@ module Awful
         nil
       end
 
+<<<<<<< HEAD
       ## get a stack if it exists, or nil
       def cfn_stack(name)
         name && cf.describe_stacks(stack_name: name)
       rescue Aws::CloudFormation::Errors::ValidationError
         nil
+=======
+      def get_stack_tag(name)
+        (get_tags(name) || []).find do |tag|
+          tag.key == 'aws:cloudformation:stack-name'
+        end&.value
+      end
+
+      def stack_exists?(name)
+        cf.describe_stacks(stack_name: name) && true
+      rescue ::Aws::CloudFormation::Errors::ValidationError
+        false
+>>>>>>> add orphans task to s3
       end
     end
 
@@ -205,21 +218,14 @@ module Awful
       )
     end
 
-    desc 'orphans', 'get buckets tagged by a stack that no longer exists'
-    method_option :delete, aliases: '-d', type: :boolean, default: false, desc: 'delete empty orphaned buckets'
+    desc 'orphans', 'find empty buckets from a deleted CFN stack'
+    method_option :delete, type: :boolean, default: false, desc: 'delete orphaned buckets'
     def orphans
-      s3.list_buckets.buckets.each do |b|
-        stack = get_tags(b.name)&.find{ |t| t.key == 'aws:cloudformation:stack-name' }&.value
-        next if cfn_stack(stack) # not an orphan if stack exists
-
-        if options[:delete]
-          if s3.list_objects_v2(bucket: b.name, max_keys: 1).key_count == 0
-            s3.delete_bucket(bucket: b.name) if yes?("Delete empty bucket #{b.name}?", :yellow)
-          else
-            puts "#{b.name} not empty"
-          end
-        else
-          puts b.name
+      s3.list_buckets.buckets.each do |bucket|
+        if (stack = get_stack_tag(bucket.name))
+          next if stack_exists?(stack)
+          puts bucket.name
+          s3.delete_bucket(bucket: bucket.name) if options[:delete]
         end
       end
     end
