@@ -18,13 +18,6 @@ module Awful
         nil
       end
 
-<<<<<<< HEAD
-      ## get a stack if it exists, or nil
-      def cfn_stack(name)
-        name && cf.describe_stacks(stack_name: name)
-      rescue Aws::CloudFormation::Errors::ValidationError
-        nil
-=======
       def get_stack_tag(name)
         (get_tags(name) || []).find do |tag|
           tag.key == 'aws:cloudformation:stack-name'
@@ -35,7 +28,6 @@ module Awful
         cf.describe_stacks(stack_name: name) && true
       rescue ::Aws::CloudFormation::Errors::ValidationError
         false
->>>>>>> add orphans task to s3
       end
     end
 
