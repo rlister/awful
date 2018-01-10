@@ -23,6 +23,16 @@ module Awful
       rollback_complete:                   :red,
     }
 
+    ## stack statuses that are not DELETE_COMPLETE
+    STATUSES = %i[
+      CREATE_IN_PROGRESS CREATE_FAILED CREATE_COMPLETE
+      ROLLBACK_IN_PROGRESS ROLLBACK_FAILED ROLLBACK_COMPLETE
+      DELETE_IN_PROGRESS DELETE_FAILED
+      UPDATE_IN_PROGRESS UPDATE_COMPLETE_CLEANUP_IN_PROGRESS UPDATE_COMPLETE
+      UPDATE_ROLLBACK_IN_PROGRESS UPDATE_ROLLBACK_FAILED UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS UPDATE_ROLLBACK_COMPLETE
+      REVIEW_IN_PROGRESS
+    ]
+
     no_commands do
       def color(string)
         set_color(string, COLORS.fetch(string.downcase.to_sym, :blue))
@@ -41,28 +51,16 @@ module Awful
     end
 
     desc 'ls [PATTERN]', 'list cloudformation stacks matching PATTERN'
-    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
-    method_option :all,  aliases: '-a', type: :boolean, default: false, desc: 'Show all, including stacks in DELETE_COMPLETE'
-    def ls(name = /./)
-      stacks = stack_summaries
-
-      ## skip deleted stacks unless -a given
-      unless options[:all]
-        stacks = stacks.select { |stack| stack.stack_status != 'DELETE_COMPLETE' }
-      end
-
-      ## match on given arg
-      stacks.select do |stack|
-        stack.stack_name.match(name)
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    def ls(name = nil)
+      paginate(:stack_summaries) do |next_token|
+        cf.list_stacks(stack_status_filter: STATUSES, next_token: next_token)
+      end.tap do |stacks|
+        stacks.select! { |s| s.stack_name.match(name) } if name
       end.output do |list|
         if options[:long]
           print_table list.map { |s|
-            [
-              s.stack_name,
-              s.creation_time,
-              color(s.stack_status),
-              s.template_description,
-            ]
+            [s.stack_name, s.creation_time, color(s.stack_status), s.template_description]
           }.sort
         else
           puts list.map(&:stack_name).sort
