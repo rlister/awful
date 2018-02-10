@@ -21,6 +21,8 @@ module Awful
       delete_skipped:                      :yellow,
       rollback_in_progress:                :red,
       rollback_complete:                   :red,
+      active:                              :green,
+      deleted:                             :red,
     }
 
     ## stack statuses that are not DELETE_COMPLETE
@@ -273,5 +275,23 @@ module Awful
       end
       puts cf.estimate_template_cost(template_body: template, parameters: parameters).url
     end
+
+    desc 'sets', 'list stack sets'
+    method_option :long,   aliases: '-l', type: :boolean, default: false,    desc: 'long listing'
+    method_option :status, aliases: '-s', type: :string,  default: 'ACTIVE', desc: 'ACTIVE or DELETED'
+    def sets
+      paginate(:summaries) do |next_token|
+        cf.list_stack_sets(status: options[:status].upcase, next_token: next_token)
+      end.output do |sets|
+        if options[:long]
+          print_table sets.map { |s|
+            [s.stack_set_name, s.stack_set_id, color(s.status), s.description]
+          }
+        else
+          puts sets.map(&:stack_set_name)
+        end
+      end
+    end
+
   end
 end
