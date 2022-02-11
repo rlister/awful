@@ -15,10 +15,6 @@ module Awful
       def events
         @events ||= Aws::CloudWatchEvents::Client.new
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
     end
 
     desc 'ls [PREFIX]', 'list events'

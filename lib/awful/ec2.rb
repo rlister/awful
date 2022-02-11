@@ -15,12 +15,6 @@ module Awful
       terminated: :red,
     }
 
-    no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-    end
-
     desc 'ls [NAME]', 'get instances with given name regex'
     method_option :long,        aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     method_option :ids,         aliases: '-i', type: :array,   default: [],    desc: 'List of instance ids to retrieve'

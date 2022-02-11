@@ -30,10 +30,6 @@ module Awful
     }
 
     no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-
       def all_matching_asgs(name)
         autoscaling.describe_auto_scaling_groups.map(&:auto_scaling_groups).flatten.select do |asg|
           asg.auto_scaling_group_name.match(name) or tag_name(asg, '').match(name)

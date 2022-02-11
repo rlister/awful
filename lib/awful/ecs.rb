@@ -21,10 +21,6 @@ module Awful
       def ecs
         @ecs ||= Aws::ECS::Client.new
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
     end
 
     desc 'ls NAME', 'list ECS clusters'

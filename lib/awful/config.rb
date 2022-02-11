@@ -21,10 +21,6 @@ module Awful
       def config
         @_config ||= Aws::ConfigService::Client.new
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
     end
 
     desc 'recorders', 'show delivery recorders'

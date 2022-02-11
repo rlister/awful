@@ -19,10 +19,6 @@ module Awful
     }
 
     no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-
       def alb
         @alb ||= Aws::ElasticLoadBalancingV2::Client.new
       end

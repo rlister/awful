@@ -18,10 +18,6 @@ module Awful
       def cloudfront
         @cloudfront ||= Aws::CloudFront::Client.new
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.downcase.to_sym, :blue))
-      end
     end
 
     desc 'ls', 'list distributions'

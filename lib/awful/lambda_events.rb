@@ -13,12 +13,6 @@ module Awful
       Disabled: :red
     }
 
-    no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-    end
-
     desc 'ls [FUNCTION_NAME]', 'list event source mappings'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = nil)

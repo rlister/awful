@@ -12,10 +12,6 @@ module Awful
     }
 
     no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-
       ## cannot search ELBs by tag, so just name here
       def all_matching_elbs(name)
         elb.describe_load_balancers.map(&:load_balancer_descriptions).flatten.select do |elb|

@@ -28,10 +28,6 @@ module Awful
 
         ec2.describe_images(params).images
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
     end
 
     desc 'ls [IDS]', 'list AMIs'

@@ -13,12 +13,6 @@ module Awful
       deleted:   :green,
     }
 
-    no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-    end
-
     desc 'ls [IDs]', 'list VPC endpoints'
     method_option :long,    aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     method_option :vpc,     aliases: '-v', type: :array,   default: [],    desc: 'VPC IDs to filter'

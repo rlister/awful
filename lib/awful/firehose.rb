@@ -18,10 +18,6 @@ module Awful
         @_firehose ||= Aws::Firehose::Client.new
       end
 
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-
       ## special-case paginator for delivery streams
       def paginate_delivery_streams(thing)
         token = nil

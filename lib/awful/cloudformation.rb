@@ -10,21 +10,22 @@ module Awful
   class CloudFormation < Cli
 
     COLORS = {
-      create_in_progress:                  :yellow,
-      delete_in_progress:                  :yellow,
-      update_in_progress:                  :yellow,
-      update_complete_cleanup_in_progress: :yellow,
-      create_failed:                       :red,
-      delete_failed:                       :red,
-      update_failed:                       :red,
-      create_complete:                     :green,
-      delete_complete:                     :green,
-      update_complete:                     :green,
-      delete_skipped:                      :yellow,
-      rollback_in_progress:                :red,
-      rollback_complete:                   :red,
-      active:                              :green,
-      deleted:                             :red,
+      CREATE_IN_PROGRESS:                  :yellow,
+      DELETE_IN_PROGRESS:                  :yellow,
+      UPDATE_IN_PROGRESS:                  :yellow,
+      UPDATE_COMPLETE_CLEANUP_IN_PROGRESS: :yellow,
+      CREATE_FAILED:                       :red,
+      DELETE_FAILED:                       :red,
+      UPDATE_FAILED:                       :red,
+      CREATE_COMPLETE:                     :green,
+      DELETE_COMPLETE:                     :green,
+      UPDATE_COMPLETE:                     :green,
+      DELETE_SKIPPED:                      :yellow,
+      ROLLBACK_IN_PROGRESS:                :red,
+      ROLLBACK_COMPLETE:                   :red,
+      ROLLBACK_FAILED:                     :red,
+      ACTIVE:                              :green,
+      DELETED:                             :red,
     }
 
     ## stack statuses that are not DELETE_COMPLETE
@@ -38,10 +39,6 @@ module Awful
     ]
 
     no_commands do
-      def color(string)
-        set_color(string, COLORS.fetch(string.downcase.to_sym, :blue))
-      end
-
       ## get list of stacks
       def stack_summaries(next_token = nil)
         response = cf.list_stacks(next_token: next_token)

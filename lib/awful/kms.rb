@@ -18,10 +18,6 @@ module Awful
         @_kms ||= Aws::KMS::Client.new
       end
 
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-
       def list_aliases
         paginate(:aliases) do |marker|
           kms.list_aliases(marker: marker)

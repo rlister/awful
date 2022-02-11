@@ -17,10 +17,6 @@ module Awful
       def emr
         @emr ||= Aws::EMR::Client.new
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
     end
 
     desc 'ls', 'list clusters'

@@ -11,10 +11,6 @@ module Awful
       def iam
         @iam ||= Aws::IAM::Client.new
       end
-
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
     end
 
     desc 'users', 'list users'

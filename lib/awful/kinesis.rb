@@ -18,10 +18,6 @@ module Awful
         @_kinesis ||= Aws::Kinesis::Client.new
       end
 
-      def color(string)
-        set_color(string, COLORS.fetch(string.to_sym, :yellow))
-      end
-
       ## special-case paginator for streams
       def paginate_streams(thing)
         token = nil

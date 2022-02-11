@@ -34,6 +34,10 @@ module Awful
         options[:yes] ? say("#{statement} yes", color) : super(statement, color)
       end
 
+      def color(string)
+        set_color(string, self.class::COLORS.fetch(string.to_sym, :yellow))
+      end
+
       def ec2
         @ec2 ||= Aws::EC2::Client.new
       end
