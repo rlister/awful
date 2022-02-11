@@ -199,5 +199,9 @@ module Awful
       exit
     end
 
+    desc 'll', 'long list'
+    def ll(*args)
+      invoke :ls, args, options.merge(long: true)
+    end
   end
 end
