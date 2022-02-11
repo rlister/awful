@@ -1,3 +1,5 @@
+require 'aws-sdk-elasticloadbalancingv2'
+
 module Awful
   module Short
     def alb(*args)

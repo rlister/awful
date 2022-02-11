@@ -24,10 +24,12 @@ Gem::Specification.new do |spec|
   spec.add_dependency('thor')
   spec.add_dependency('dotenv')
 
+  spec.add_dependency('aws-sdk-autoscaling')
   spec.add_dependency('aws-sdk-cloudformation')
   spec.add_dependency('aws-sdk-dynamodb')
   spec.add_dependency('aws-sdk-ec2')
   spec.add_dependency('aws-sdk-ecr')
+  spec.add_dependency('aws-sdk-elasticloadbalancingv2')
   spec.add_dependency('aws-sdk-rds')
   spec.add_dependency('aws-sdk-s3')
   spec.add_dependency('aws-sdk-ssm')

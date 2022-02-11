@@ -1,3 +1,5 @@
+require 'aws-sdk-autoscaling'
+
 module Awful
   module Short
     def asg(*args)
