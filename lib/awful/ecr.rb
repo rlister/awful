@@ -1,3 +1,4 @@
+require 'aws-sdk-ecr'
 require 'json'
 require 'base64'
 

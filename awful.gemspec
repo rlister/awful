@@ -18,10 +18,17 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler", "~> 1.7"
+  spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
 
-  spec.add_dependency('aws-sdk', '~> 2')
   spec.add_dependency('thor')
   spec.add_dependency('dotenv')
+
+  spec.add_dependency('aws-sdk-cloudformation')
+  spec.add_dependency('aws-sdk-dynamodb')
+  spec.add_dependency('aws-sdk-ec2')
+  spec.add_dependency('aws-sdk-ecr')
+  spec.add_dependency('aws-sdk-rds')
+  spec.add_dependency('aws-sdk-s3')
+  spec.add_dependency('aws-sdk-ssm')
 end

@@ -1,3 +1,5 @@
+require 'aws-sdk-ssm'
+
 module Awful
   module Short
     def ssm(*args)

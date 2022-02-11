@@ -1,3 +1,5 @@
+require 'aws-sdk-s3'
+
 module Awful
   module Short
     def s3(*args)

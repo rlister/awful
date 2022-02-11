@@ -1,3 +1,4 @@
+require 'aws-sdk-dynamodb'
 require 'json'
 require 'awful/dynamodb_streams'
 

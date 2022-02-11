@@ -1,3 +1,5 @@
+require 'aws-sdk-rds'
+
 module Awful
 
   class Rds < Cli

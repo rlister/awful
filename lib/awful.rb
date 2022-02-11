@@ -1,7 +1,8 @@
+require 'aws-sdk-s3'
+require 'aws-sdk-ec2'
 require 'awful/version'
 
 require 'dotenv'
-require 'aws-sdk'
 require 'thor'
 require 'yaml'
 require 'erb'

@@ -1,3 +1,5 @@
+require 'aws-sdk-cloudformation'
+
 module Awful
   module Short
     def cf(*args)
