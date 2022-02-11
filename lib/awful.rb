@@ -192,5 +192,12 @@ module Awful
         things
       end
     end
+
+    desc 'version', 'print version'
+    def version
+      puts VERSION
+      exit
+    end
+
   end
 end
