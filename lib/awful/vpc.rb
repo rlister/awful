@@ -1,5 +1,13 @@
 module Awful
   class Vpc < Cli
+    COLORS = {
+      active: :green,
+      available: :green,
+      deleted: :red,
+      expired: :red,
+      failed: :red,
+      rejected: :red,
+    }
 
     desc 'ls [PATTERN]', 'list vpcs [with any tags matching PATTERN]'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
@@ -25,6 +33,29 @@ module Awful
       end
     end
 
-  end
+    desc 'delete VPC', 'delete vpc'
+    def delete(vpc_id)
+      if yes?("Really delete vpc #{vpc_id}?", :yellow)
+        p ec2.delete_vpc(vpc_id: vpc_id)
+      end
+    rescue Aws::EC2::Errors::DependencyViolation => e
+      error(e.message)
+    rescue Aws::EC2::Errors::InvalidVpcIDNotFound => e
+      error(e.message)
+    end
 
+    desc 'peers', 'list vpc peers'
+    def peers
+      ec2.describe_vpc_peering_connections.map(&:vpc_peering_connections).flatten.map do |p|
+        [
+          tag_name(p, '-'), p.vpc_peering_connection_id, color(p.status.code),
+          p.requester_vpc_info.vpc_id, p.accepter_vpc_info.vpc_id,
+          p.requester_vpc_info.cidr_block, p.accepter_vpc_info.cidr_block,
+        ]
+      end.tap do |list|
+        print_table list.sort
+      end
+    end
+
+  end
 end
