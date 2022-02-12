@@ -13,7 +13,7 @@ module Awful
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def ls(name = /./)
       fields = options[:long] ?
-        ->(v) { [tag_name(v), v.vpc_id, v.state, v.cidr_block] } :
+        ->(v) { [tag_name(v), v.vpc_id, color(v.state), v.cidr_block] } :
         ->(v) { [v.vpc_id] }
       ec2.describe_vpcs.map(&:vpcs).flatten.select do |vpc|
         vpc.tags.any? { |tag| tag.value.match(name) }
