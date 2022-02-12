@@ -1,10 +1,4 @@
 module Awful
-  module Short
-    def vpc(*args)
-      Awful::Vpc.new.invoke(*args)
-    end
-  end
-
   class Vpc < Cli
 
     desc 'ls [PATTERN]', 'list vpcs [with any tags matching PATTERN]'
