@@ -33,21 +33,15 @@ module Awful
       REVIEW_IN_PROGRESS
     ]
 
-    desc 'ls [PATTERN]', 'list cloudformation stacks matching PATTERN'
+    desc 'ls [PATTERN]', 'list matching stacks'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def ls(name = nil)
-      paginate(:stack_summaries) do |next_token|
-        cf.list_stacks(stack_status_filter: STATUSES, next_token: next_token)
-      end.tap do |stacks|
-        stacks.select! { |s| s.stack_name.match(name) } if name
-      end.output do |list|
-        if options[:long]
-          print_table list.map { |s|
-            [s.stack_name, s.creation_time, color(s.stack_status), s.template_description]
-          }.sort
-        else
-          puts list.map(&:stack_name).sort
-        end
+      stacks = cf.list_stacks(stack_status_filter: STATUSES).map(&:stack_summaries).flatten
+      stacks.select! { |s| s.stack_name.match(name) } if name
+      if options[:long]
+        print_table stacks.map { |s| [ s.stack_name, s.creation_time, color(s.stack_status) ] }.sort
+      else
+        puts stacks.map(&:stack_name).sort
       end
     end
 
