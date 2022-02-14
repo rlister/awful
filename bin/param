@@ -1,7 +1,0 @@
-#!/usr/bin/env ruby
-#-*- mode: ruby; -*-
-
-require 'awful'
-require 'awful/param'
-
-Awful::Param.start(ARGV)
