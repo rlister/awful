@@ -32,5 +32,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency('aws-sdk-elasticloadbalancingv2')
   spec.add_dependency('aws-sdk-rds')
   spec.add_dependency('aws-sdk-s3')
+  spec.add_dependency('aws-sdk-secretsmanager')
   spec.add_dependency('aws-sdk-ssm')
 end
