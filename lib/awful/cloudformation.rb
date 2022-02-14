@@ -10,23 +10,16 @@ module Awful
   class CloudFormation < Cli
 
     COLORS = {
-      CREATE_IN_PROGRESS:                  :yellow,
-      DELETE_IN_PROGRESS:                  :yellow,
-      UPDATE_IN_PROGRESS:                  :yellow,
-      UPDATE_COMPLETE_CLEANUP_IN_PROGRESS: :yellow,
-      CREATE_FAILED:                       :red,
-      DELETE_FAILED:                       :red,
-      UPDATE_FAILED:                       :red,
-      CREATE_COMPLETE:                     :green,
-      DELETE_COMPLETE:                     :green,
-      UPDATE_COMPLETE:                     :green,
-      DELETE_SKIPPED:                      :yellow,
-      ROLLBACK_IN_PROGRESS:                :red,
-      ROLLBACK_COMPLETE:                   :red,
-      ROLLBACK_FAILED:                     :red,
-      ACTIVE:                              :green,
-      DELETED:                             :red,
+      CREATE_COMPLETE:      :green,
+      CREATE_FAILED:        :red,
+      DELETE_COMPLETE:      :green,
+      DELETE_FAILED:        :red,
       IMPORT_COMPLETE:      :green,
+      ROLLBACK_COMPLETE:    :red,
+      ROLLBACK_FAILED:      :red,
+      ROLLBACK_IN_PROGRESS: :red,
+      UPDATE_COMPLETE:      :green,
+      UPDATE_FAILED:        :red,
     }
 
     ## stack statuses that are not DELETE_COMPLETE
