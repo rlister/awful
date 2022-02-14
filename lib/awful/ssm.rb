@@ -70,6 +70,16 @@ module Awful
       error(e.message)
     end
 
+    desc 'history NAME', 'get parameter history'
+    method_option :decrypt, aliases: '-d', type: :boolean, default: false, desc: 'decrypt SecureString'
+    def history(name)
+      ssm.get_parameter_history(name: name, with_decryption: options[:decrypt]).each do |p|
+        print_table p.parameters.map { |h|
+          [ h.version, h.last_modified_date, h.value ]
+        }
+      end
+    end
+
     desc 'commands', 'list commands'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
     def commands
