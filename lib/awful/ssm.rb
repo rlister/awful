@@ -15,9 +15,9 @@ module Awful
       end
     end
 
-    desc 'ls', 'list commands'
+    desc 'commands', 'list commands'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
-    def ls
+    def commands
       ssm.list_commands.commands.output do |cmds|
         if options[:long]
           print_table cmds.map { |c|
