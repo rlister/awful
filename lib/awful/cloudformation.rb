@@ -33,19 +33,6 @@ module Awful
       REVIEW_IN_PROGRESS
     ]
 
-    no_commands do
-      ## get list of stacks
-      def stack_summaries(next_token = nil)
-        response = cf.list_stacks(next_token: next_token)
-        summaries = response.stack_summaries
-        if response.next_token # recurse to get more data
-          summaries += stack_summaries(response.next_token)
-        else
-          summaries
-        end
-      end
-    end
-
     desc 'ls [PATTERN]', 'list cloudformation stacks matching PATTERN'
     method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def ls(name = nil)
