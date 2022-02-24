@@ -22,6 +22,12 @@ module Awful
     class_option :yes,                  type: :boolean, default: false, desc: 'Always answer yes to prompts'
     class_option :region,               type: :string,  default: nil,   desc: 'Set region; can use AWS_REGION instead'
 
+    ## silence deprecation warning
+    ## https://github.com/erikhuda/thor/blob/fb625b223465692a9d8a88cc2a483e126f1a8978/CHANGELOG.md#100
+    def self.exit_on_failure?
+      true
+    end
+
     def initialize(args = [], local_options = {}, config = {})
       super
       $awful_quiet = options[:quiet]                           # turn off output
