@@ -3,12 +3,6 @@ require 'json'
 require 'base64'
 
 module Awful
-  module Short
-    def ecr(*args)
-      Awful::ECR.new.invoke(*args)
-    end
-  end
-
   class ECR < Cli
     no_commands do
       def ecr
@@ -33,25 +27,14 @@ module Awful
       end
     end
 
-    desc 'ls', 'list commands'
-    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
+    desc 'ls', 'list repositories'
+    method_option :long, aliases: '-l', type: :boolean, default: false, desc: 'long listing'
     def ls
-      ecr.describe_repositories.repositories.output do |repos|
-        if options[:long]
-          print_table repos.map { |r| [r.repository_name, r.registry_id, r.repository_arn] }.sort
-        else
-          puts repos.map(&:repository_name).sort
-        end
-      end
-    end
-
-    desc 'dump [REPOS]', 'describe given or all repositories as yaml'
-    def dump(*repos)
-      repos = nil if repos.empty? # omit this arg to show all repos
-      ecr.describe_repositories(repository_names: repos).repositories.output do |list|
-        list.each do |repo|
-          puts YAML.dump(stringify_keys(repo.to_h))
-        end
+      repos = ecr.describe_repositories.map(&:repositories).flatten
+      if options[:long]
+        print_table repos.map { |r| [r.repository_name, r.registry_id, r.repository_arn] }.sort
+      else
+        puts repos.map(&:repository_name).sort
       end
     end
 
@@ -94,24 +77,12 @@ module Awful
     end
 
     desc 'images REPO', 'list images for repo'
-    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'Long listing'
-    method_option :tagged,   aliases: '-t', type: :boolean, default: false, desc: 'show only tagged images'
     method_option :untagged, aliases: '-u', type: :boolean, default: false, desc: 'show only untagged images'
-    def images(repository)
-      tag_status = 'TAGGED'   if options[:tagged]
-      tag_status = 'UNTAGGED' if options[:untagged]
-
-      describe_images(repository, tag_status).output do |list|
-        if options[:long]
-          print_table list.map { |i|
-            tags = i.image_tags || []
-            size = "%.2f MiB" % (i.image_size_in_bytes/(1024*1024))
-            [tags.join(','), i.image_pushed_at, size, i.image_digest]
-          }
-        else
-          puts list.map(&:image_tags).flatten
-        end
-      end
+    def images(repo)
+      filter = { tag_status: options[:untagged] ? :UNTAGGED : :TAGGED }
+      print_table ecr.describe_images(repository_name: repo, filter: filter).map(&:image_details).flatten.map { |i|
+        [ i.image_pushed_at, i.image_tags.sort_by(&:size).join(' ') ]
+      }.sort.reverse
     end
 
     desc 'get REPO TAG[S]', 'get image details for all given TAGS'

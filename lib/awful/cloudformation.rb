@@ -1,12 +1,6 @@
 require 'aws-sdk-cloudformation'
 
 module Awful
-  module Short
-    def cf(*args)
-      Awful::CloudFormation.new.invoke(*args)
-    end
-  end
-
   class CloudFormation < Cli
 
     COLORS = {
@@ -148,9 +142,11 @@ module Awful
 
     desc 'delete NAME', 'deletes stack with name NAME'
     def delete(name)
-      if yes? "Really delete stack #{name}?", :yellow
+      if yes? "Delete stack #{name}?", :yellow
         cf.delete_stack(stack_name: name)
       end
+    rescue Aws::CloudFormation::Errors::ValidationError => e
+      error(e.message)
     end
 
     desc 'events NAME', 'show events for stack with name NAME'

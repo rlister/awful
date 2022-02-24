@@ -1,3 +1,4 @@
+require 'aws-sdk-iam'
 require 'json'
 
 module Awful

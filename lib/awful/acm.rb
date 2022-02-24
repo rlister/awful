@@ -1,73 +1,73 @@
 require 'yaml'
+require 'aws-sdk-acm'
 
 module Awful
-  module Short
-    def acm(*args)
-      Awful::Acm.new.invoke(*args)
-    end
-  end
-
   class Acm < Cli
+    COLORS = {
+      ISSUED: :green,
+      EXPIRED: :red,
+      REVOKED: :red,
+      FAILED: :red,
+      in_use: :green,
+      not_in_use: :red,
+    }
+
     no_commands do
       def acm
         @_acm ||= Aws::ACM::Client.new
       end
 
-      def find_cert(n)
-        paginate(:certificate_summary_list) do |next_token|
-          acm.list_certificates(next_token: next_token)
-        end.find do |cert|
-          (n == cert.domain_name) || (n == cert.certificate_arn)
+      ## return array of certs matching domain name or arn
+      def find_certs(string = /./)
+        acm.list_certificates().map(&:certificate_summary_list).flatten.select do |c|
+          (c.domain_name.match(string)) || (c.certificate_arn.match(string))
         end
       end
     end
 
-    desc 'ls', 'stuff'
-    method_option :long,     aliases: '-l', type: :boolean, default: false, desc: 'long listing'
-    method_option :arn,      aliases: '-a', type: :boolean, default: false, desc: 'list ARNs for certs'
-    method_option :statuses, aliases: '-s', type: :array,   default: [],    desc: 'pending_validation,issued,inactive,expired,validation_timed_out,revoked,failed'
+    desc 'ls', 'list certs'
+    method_option :long,       aliases: '-l', type: :boolean, default: false, desc: 'long listing'
+    method_option :not_issued, aliases: '-u', type: :boolean, default: false, desc: 'certs not issued'
     def ls
-      paginate(:certificate_summary_list) do |next_token|
-        acm.list_certificates(
-          certificate_statuses: options[:statuses].map(&:upcase),
-          next_token: next_token
-        )
-      end.output do |certs|
-        if options[:long]
-          print_table certs.map { |cert|
-            c = acm.describe_certificate(certificate_arn: cert.certificate_arn).certificate
-            [c.domain_name, c.subject_alternative_names.join(','), c.status, c.type, (c.in_use_by.empty? ? 'in use' : 'not in use')]
-          }
-        elsif options[:arn]
-          print_table certs.map { |c| [c.domain_name, c.certificate_arn] }
-        else
-          puts certs.map(&:domain_name)
+      statuses = options[:not_issued] ? %w[ PENDING_VALIDATION INACTIVE EXPIRED VALIDATION_TIMED_OUT REVOKED FAILED ] : []
+      certs = acm.list_certificates(certificate_statuses: statuses).map(&:certificate_summary_list).flatten
+      if options[:long]
+        print_table certs.map { |c|
+          [ c.domain_name, c.certificate_arn.split('/').last ]
+        }.sort
+      else
+        puts certs.map(&:domain_name).sort
+      end
+    end
+
+    desc 'get NAME', 'get details for matching certs'
+    def get(name = nil)
+      print_table find_certs(name).map { |cert|
+        c = acm.describe_certificate(certificate_arn: cert.certificate_arn).certificate
+        use = c.in_use_by.empty? ? 'not_in_use' : 'in_use'
+        arn = c.certificate_arn.split('/').last
+        created = c&.created_at&.strftime('%Y-%m-%d')
+        expires = c&.not_after&.strftime('%Y-%m-%d')
+        [ c.domain_name, arn, color(c.status), color(use), created, expires ]
+      }
+    end
+
+    desc 'dump NAME', 'show cert details'
+    def dump(name)
+      find_certs(name).each do |c|
+        acm.describe_certificate(certificate_arn: c.certificate_arn).certificate.output do |cert|
+          puts YAML.dump(stringify_keys(cert.to_hash))
         end
       end
     end
 
-    desc 'dump CERT', 'get cert details by ARN or domain name'
-    def dump(n)
-      acm.describe_certificate(certificate_arn: find_cert(n).certificate_arn).certificate.output do |cert|
-        puts YAML.dump(stringify_keys(cert.to_hash))
-      end
-    end
-
-    desc 'get CERT', 'get ACM cert and chain'
-    method_option :chain, type: :boolean, default: false, desc: 'print cert chain instead of cert'
-    def get(n)
-      acm.get_certificate(certificate_arn: find_cert(n).certificate_arn).output do |cert|
-        if options[:chain]
-          puts cert.certificate_chain
-        else
-          puts cert.certificate
+    desc 'delete CERT', 'delete certificate by domain or arn'
+    def delete(string)
+      find_certs(string).each do |c|
+        if yes?("Delete #{c.certificate_arn}?", :yellow)
+          acm.delete_certificate(certificate_arn: c.certificate_arn)
         end
       end
-    end
-
-    desc 'delete CERT', 'delete certificate from ACM'
-    def delete(n)
-      acm.delete_certificate(certificate_arn: find_cert(n).certificate_arn)
     end
 
   end
