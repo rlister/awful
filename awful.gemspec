@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency('thor')
   spec.add_dependency('dotenv')
+  spec.add_dependency('ox')
 
   spec.add_dependency('aws-sdk-acm')
   spec.add_dependency('aws-sdk-autoscaling')
